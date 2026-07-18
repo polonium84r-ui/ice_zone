@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%B6%EF%B8%8F</text></svg>">
-  <meta name="description" content="Browse the Popsicle Stories menu — Kunafa popsicles, fruit pops, kulfi classics, shakes & more.">
-  <title>Menu — Popsicle Stories</title>
+  <link rel="icon" type="image/png" href="assets/thirst-logo.png">
+  <meta name="description" content="Browse the Thirst. menu — kunafa treats, fruit pops, kulfi classics, shakes & more.">
+  <title>Menu — Thirst.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* No page-header banner here, so offset content below the fixed navbar. */
+    body { padding-top: var(--navbar-height); }
+  </style>
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar solid scrolled" role="navigation" aria-label="Main navigation">
     <div class="container">
       <a href="index.html" class="navbar-logo">
-        <span>Popsicle Stories</span>
+        <img src="assets/thirst-logo.png" alt="Thirst." class="navbar-logo-img">
       </a>
       <div class="nav-links">
         <a href="index.html">Home</a>
@@ -50,14 +54,6 @@
     <a href="cart.html">Cart</a>
   </div>
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="container">
-      <h1>Our Menu</h1>
-      <p>Explore 24 handcrafted popsicles & treats across 6 categories — filter, search, and order your favorites.</p>
-    </div>
-  </div>
-
   <!-- Filters -->
   <div class="menu-filters">
     <div class="container">
@@ -65,7 +61,7 @@
       <div class="menu-toolbar">
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="search" id="menu-search" placeholder="Search popsicles..." aria-label="Search menu">
+          <input type="search" id="menu-search" placeholder="Search treats..." aria-label="Search menu">
         </div>
         <div class="veg-toggle">
           <span>🥬 Veg Only</span>
@@ -113,8 +109,8 @@
     <div class="container">
       <div class="footer-grid">
         <div>
-          <h4>🍦 Popsicle Stories</h4>
-          <p>Handcrafted popsicles, kunafa &amp; kulfi treats. Sweet stories, frozen — made fresh in Thiruvallur.</p>
+          <h4><img src="assets/thirst-logo.png" alt="" class="footer-logo-img">Thirst.</h4>
+          <p>Handcrafted kunafa &amp; kulfi treats. Sweet stories, frozen — made fresh in Thiruvallur.</p>
           <div class="footer-social">
             <a href="#" aria-label="Facebook">📘</a>
             <a href="https://www.instagram.com/popsicle__stories" target="_blank" rel="noopener" aria-label="Instagram">📷</a>
@@ -142,9 +138,9 @@
         </div>
         <div>
           <h4>Contact Us</h4>
-          <p>No. 1, Sivavishnu Koil Street,<br>Rajajipuram, Thiruvallur – 602 001</p>
+          <p>No. 01, Siva Vishnu Kovil Street,<br>Kakkalur, Thiruvallur – 602 001</p>
           <p>📞 +91 98409 12345</p>
-          <p>✉️ hello@popsiclestories.in</p>
+          <p>✉️ hello@thirst.in</p>
           <form class="newsletter-form" id="newsletter-form">
             <input type="email" placeholder="Your email" required aria-label="Newsletter email">
             <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
@@ -152,7 +148,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 Popsicle Stories. All rights reserved.</p>
+        <p>&copy; 2026 Thirst. All rights reserved.</p>
       </div>
     </div>
   </footer>

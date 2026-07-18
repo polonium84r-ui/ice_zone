@@ -87,12 +87,15 @@ const App = (() => {
     const loginLink = document.querySelector('.nav-login-link');
     const userMenu = document.querySelector('.user-menu');
     const drawerLoginLink = document.querySelector('.mobile-drawer a[href="login.html"]');
-    if (!loginLink && !userMenu) return;
+    // Any other "Login" call-to-action (e.g. the homepage hero button).
+    const loginCtas = document.querySelectorAll('.js-login-cta');
+    if (!loginLink && !userMenu && !loginCtas.length) return;
 
     const user = Auth.getUser();
     if (user) {
       if (loginLink) loginLink.style.display = 'none';
       if (drawerLoginLink) drawerLoginLink.style.display = 'none';
+      loginCtas.forEach(el => el.style.display = 'none');
       if (userMenu) {
         userMenu.style.display = 'block';
         const btn = userMenu.querySelector('.user-menu-btn');
@@ -120,6 +123,7 @@ const App = (() => {
     } else {
       if (loginLink) loginLink.style.display = '';
       if (drawerLoginLink) drawerLoginLink.style.display = '';
+      loginCtas.forEach(el => el.style.display = '');
       if (userMenu) userMenu.style.display = 'none';
     }
   }

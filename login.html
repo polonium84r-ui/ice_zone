@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%B6%EF%B8%8F</text></svg>">
-  <meta name="description" content="Login to Popsicle Stories — Customer & Admin access">
-  <title>Login — Popsicle Stories</title>
+  <link rel="icon" type="image/png" href="assets/thirst-logo.png">
+  <meta name="description" content="Login to Thirst. — Customer & Admin access">
+  <title>Login — Thirst.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body class="auth-page-body">
   <div class="auth-page">
     <!-- Left Image Panel -->
     <div class="auth-image">
-      <img src="https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=800&q=80" alt="Colorful popsicles">
+      <img src="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=800&q=80" alt="Gourmet handcrafted frozen treats">
       <div class="auth-image-overlay">
         <div>
-          <h2>Welcome to Popsicle Stories</h2>
+          <h2>Welcome to Thirst.</h2>
           <p style="margin-top:12px;opacity:0.9">Sign in to order, earn rewards, and enjoy exclusive offers.</p>
         </div>
       </div>
@@ -27,12 +27,13 @@
     <!-- Right Form Panel -->
     <div class="auth-form-panel">
       <div class="auth-card">
+        <img src="assets/thirst-logo.png" alt="Thirst." class="auth-logo-img">
         <h1>Sign In</h1>
         <p class="subtitle">Access your account to order delicious food</p>
 
         <div class="tabs">
           <button class="tab-btn active" data-tab="customer">Customer Login</button>
-          <button class="tab-btn" data-tab="admin">Admin Login</button>
+          <button class="tab-btn" data-tab="admin">Staff / Admin</button>
         </div>
 
         <!-- Customer Login -->
@@ -64,8 +65,8 @@
         <div class="tab-panel" id="tab-admin">
           <form id="admin-login-form">
             <div class="form-group">
-              <label for="admin-email">Admin Email</label>
-              <input type="email" id="admin-email" class="form-control" data-validate="email" required placeholder="admin@popsiclestories.in">
+              <label for="admin-email">Email Address</label>
+              <input type="email" id="admin-email" class="form-control" data-validate="email" required placeholder="you@example.com">
               <span class="form-error"></span>
             </div>
             <div class="form-group">
@@ -76,9 +77,9 @@
               </div>
               <span class="form-error"></span>
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%">Admin Sign In</button>
+            <button type="submit" class="btn btn-primary" style="width:100%">Staff / Admin Sign In</button>
           </form>
-          <p class="auth-footer text-muted" style="margin-top:16px">Demo: admin@popsiclestories.in / Admin@123</p>
+          <p class="auth-footer text-muted" style="margin-top:16px">Staff and admin sign in here. Demo admin: admin@thirst.in / Admin@123</p>
         </div>
 
         <p style="text-align:center;margin-top:24px"><a href="index.html" style="color:var(--color-text-muted);font-size:14px">← Back to Home</a></p>
@@ -135,9 +136,16 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await App.init();
 
+      // Landing page for a given role
+      function landingFor(role, fallback) {
+        if (role === 'admin') return 'admin.html';
+        if (role === 'staff') return 'billing.html';
+        return fallback || 'menu.html';
+      }
+
       // Redirect if already logged in
       if (Auth.isLoggedIn()) {
-        window.location.href = Auth.isAdmin() ? 'admin.html' : 'menu.html';
+        window.location.href = landingFor(Auth.getUser()?.role);
         return;
       }
 
@@ -181,7 +189,9 @@
           const session = await Auth.login(email.value.trim(), password.value);
           App.showToast('Welcome back, ' + session.user.name.split(' ')[0] + '!', 'success');
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || 'menu.html';
+          // Staff/admin always land on their console; customers honour ?redirect
+          const role = session.user.role;
+          const redirect = (role === 'customer' && params.get('redirect')) || landingFor(role, 'menu.html');
           setTimeout(() => window.location.href = redirect, 600);
         } catch (err) {
           customerForm.classList.add('error');
@@ -204,12 +214,13 @@
 
         try {
           const session = await Auth.login(email.value.trim(), password.value);
-          if (!Auth.isAdmin()) {
+          // This tab is for staff and admins. Customers must use the Customer tab.
+          if (!Auth.canStaff()) {
             await Auth.logout();
-            throw new Error('Access denied. Admin credentials required.');
+            throw new Error('This is the staff / admin login. Please use the Customer Login tab.');
           }
-          App.showToast('Welcome, Admin!', 'success');
-          setTimeout(() => window.location.href = 'admin.html', 600);
+          App.showToast('Welcome, ' + session.user.name.split(' ')[0] + '!', 'success');
+          setTimeout(() => window.location.href = Auth.isAdmin() ? 'admin.html' : 'billing.html', 600);
         } catch (err) {
           password.classList.add('error');
           App.showToast(err.message, 'error');

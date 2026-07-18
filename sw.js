@@ -1,9 +1,9 @@
 /**
- * Service Worker for Popsicle Stories
+ * Service Worker for Thirst.
  * Provides offline support and caching strategies
  */
 
-const CACHE_NAME = 'popsicle-stories-v1.0.0';
+const CACHE_NAME = 'thirst-v2.0.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -18,7 +18,8 @@ const ASSETS_TO_CACHE = [
   '/js/auth.js',
   '/js/cart.js',
   '/js/app.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/assets/thirst-logo.png'
 ];
 
 // Install event - cache assets
@@ -55,6 +56,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+
+  // Never cache API traffic — always hit the network for live data
+  if (event.request.url.includes('/api/')) return;
 
   // Skip chrome extensions and external requests
   if (!event.request.url.startsWith(self.location.origin)) return;

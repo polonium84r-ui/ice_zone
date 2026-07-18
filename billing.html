@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="assets/thirst-logo.png">
+  <meta name="description" content="Thirst. Staff Billing / POS — generate and share customer receipts.">
+  <title>Billing / POS — Thirst.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .pos-body { background: var(--color-background); min-height: 100vh; }
+    .pos-topbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 12px 24px; background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-sm);
+    }
+    .pos-topbar .brand { display: flex; align-items: center; gap: 12px; }
+    .pos-topbar .brand img { height: 44px; width: 44px; object-fit: contain; }
+    .pos-topbar .brand h1 { font-size: 18px; font-family: var(--font-body); margin: 0; }
+    .pos-topbar .brand span { font-size: 12px; color: var(--color-text-muted); }
+    .pos-topbar .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pos-topbar .staff-chip { font-size: 13px; color: var(--color-text-muted); }
+
+    .pos-layout {
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;
+      max-width: 1400px; margin: 0 auto; padding: 24px;
+    }
+    @media (max-width: 900px) { .pos-layout { grid-template-columns: 1fr; } }
+
+    .pos-panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; min-width: 0; }
+    .pos-panel h2 { font-size: 16px; font-family: var(--font-body); margin-bottom: 16px; }
+
+    .pos-search { width: 100%; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 15px; margin-bottom: 16px; }
+
+    .pos-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-height: 460px; overflow-y: auto; }
+    .pos-menu-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px;
+      cursor: pointer; transition: all var(--transition-fast); text-align: left; background: var(--color-surface);
+    }
+    .pos-menu-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+    .pos-menu-card h4 { font-size: 13px; font-family: var(--font-body); margin: 0 0 4px; line-height: 1.3; }
+    .pos-menu-card .cat { font-size: 11px; color: var(--color-text-light); }
+    .pos-menu-card .price { font-size: 14px; font-weight: 700; color: var(--color-primary); margin-top: 6px; }
+
+    .custom-item-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 16px; }
+    .custom-item-row .form-group { margin: 0; }
+    .custom-item-row label { font-size: 12px; }
+
+    .bill-items { margin-bottom: 16px; }
+    .bill-empty { text-align: center; color: var(--color-text-muted); padding: 28px 0; font-size: 14px; }
+    .bill-line { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-border-light); }
+    .bill-line .name { font-size: 14px; font-weight: 600; }
+    .bill-line .unit { font-size: 12px; color: var(--color-text-muted); }
+    .bill-line .line-total { font-weight: 700; min-width: 74px; text-align: right; }
+    .bill-qty { display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-pill); overflow: hidden; }
+    .bill-qty button { width: 28px; height: 28px; border: none; background: var(--color-background); cursor: pointer; font-size: 16px; color: var(--color-primary); }
+    .bill-qty span { min-width: 26px; text-align: center; font-size: 14px; font-weight: 600; }
+    .bill-remove { background: none; border: none; color: var(--color-error); cursor: pointer; font-size: 12px; margin-left: 4px; }
+
+    .bill-totals { border-top: 2px solid var(--color-border); margin-top: 8px; padding-top: 12px; }
+    .bill-totals .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+    .bill-totals .row.grand { font-size: 20px; font-weight: 700; color: var(--color-primary); border-top: 1px dashed var(--color-border); margin-top: 8px; padding-top: 12px; }
+
+    /* Receipt */
+    .receipt { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: #fff; color: #1a0e08; border-radius: var(--radius-md); padding: 22px; border: 1px dashed #bbb; }
+    .receipt-head { text-align: center; margin-bottom: 12px; }
+    .receipt-head img { height: 88px; width: 88px; object-fit: contain; margin: 0 auto 4px; }
+    .receipt-head h3 { font-family: var(--font-body); font-size: 18px; margin: 6px 0 2px; }
+    .receipt-head p { font-size: 11px; color: #555; line-height: 1.4; margin: 0; }
+    .receipt-meta { font-size: 12px; margin: 12px 0; border-top: 1px dashed #bbb; border-bottom: 1px dashed #bbb; padding: 8px 0; }
+    .receipt-meta div { display: flex; justify-content: space-between; padding: 2px 0; }
+    .receipt-lines { font-size: 12px; margin: 10px 0; }
+    .receipt-lines .rl { display: flex; justify-content: space-between; padding: 3px 0; }
+    .receipt-lines .rl small { color: #666; }
+    .receipt-totals { font-size: 12px; border-top: 1px dashed #bbb; padding-top: 8px; }
+    .receipt-totals .rt { display: flex; justify-content: space-between; padding: 2px 0; }
+    .receipt-totals .rt.grand { font-size: 16px; font-weight: 700; border-top: 1px solid #333; margin-top: 6px; padding-top: 8px; }
+    .receipt-foot { text-align: center; font-size: 11px; color: #555; margin-top: 14px; border-top: 1px dashed #bbb; padding-top: 10px; }
+    /* Receipt popup — clean, receipt-shaped, fits without scrolling */
+    .receipt-modal { max-width: 400px; max-height: 96vh; }
+    .receipt-modal .modal-header { padding: 14px 20px; }
+    .receipt-modal .modal-body { padding: 12px 18px 14px; }
+    .receipt-preview { display: flex; justify-content: center; }
+    .receipt-preview .receipt { width: 100%; max-width: 320px; padding: 14px; border: 1px solid #e6ddd6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    /* Compact on-screen preview (the PDF/print receipt keeps its larger logo). */
+    .receipt-preview .receipt-head { margin-bottom: 4px; }
+    /* Global reset sets img{display:block}; centre it to match the PDF. */
+    .receipt-preview .receipt-head img { height: 52px; width: 52px; margin: 0 auto 2px; }
+    .receipt-preview .receipt-head h3 { font-size: 16px; margin: 3px 0 2px; }
+    .receipt-preview .receipt-head p { font-size: 10px; line-height: 1.35; }
+    .receipt-preview .receipt-meta { margin: 6px 0; padding: 6px 0; }
+    .receipt-preview .receipt-lines { margin: 6px 0; }
+    .receipt-preview .receipt-foot { margin-top: 6px; padding-top: 6px; }
+
+    .share-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 12px; }
+    .share-actions .btn { width: 100%; min-width: 0; padding: 9px 12px; font-size: 14px; }
+    .share-actions .new-bill { grid-column: 1 / -1; }
+    .btn-whatsapp { background: #25D366; color: #fff; border: 1px solid #25D366; }
+    .btn-whatsapp:hover:not(:disabled) { background: #1ebe5a; border-color: #1ebe5a; }
+    @media (max-width: 480px) { .share-actions { grid-template-columns: 1fr; } .custom-item-row { grid-template-columns: 1fr 1fr; } }
+
+    /* Receipts print via a dedicated hidden iframe (see printReceipt()), so the
+       on-screen app never goes to the printer. This guards accidental Ctrl+P. */
+    @media print { body { display: none !important; } }
+  </style>
+</head>
+<body class="pos-body">
+  <!-- Top bar -->
+  <header class="pos-topbar">
+    <div class="brand">
+      <img src="assets/thirst-logo.png" alt="Thirst.">
+      <div>
+        <h1>Billing / POS</h1>
+        <span>Thirst. — Counter Terminal</span>
+      </div>
+    </div>
+    <div class="actions">
+      <span class="staff-chip" id="staff-chip"></span>
+      <a href="admin.html" class="btn btn-secondary btn-sm" id="admin-link" style="display:none">Admin</a>
+      <button class="btn btn-secondary btn-sm" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div class="pos-layout">
+    <!-- Item picker -->
+    <div class="pos-panel">
+      <h2>Add Items</h2>
+      <input type="search" class="pos-search" id="item-search" placeholder="Search menu items…" aria-label="Search items">
+      <div class="pos-menu-grid" id="pos-menu-grid"></div>
+
+      <form id="custom-item-form" class="custom-item-row">
+        <div class="form-group">
+          <label>Custom item</label>
+          <input type="text" class="form-control" name="name" placeholder="Item name">
+        </div>
+        <div class="form-group">
+          <label>Price ₹</label>
+          <input type="number" class="form-control" name="price" min="1" step="0.01" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Qty</label>
+          <input type="number" class="form-control" name="quantity" min="1" value="1">
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+      </form>
+    </div>
+
+    <!-- Bill -->
+    <div class="pos-panel">
+      <h2>Current Bill</h2>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" class="form-control" id="cust-name" placeholder="Walk-in Customer">
+        </div>
+        <div class="form-group">
+          <label>Phone (for sharing)</label>
+          <input type="tel" class="form-control" id="cust-phone" placeholder="Optional">
+        </div>
+      </div>
+
+      <div class="bill-items" id="bill-items">
+        <div class="bill-empty">No items yet — tap a menu item to start.</div>
+      </div>
+
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>Discount ₹</label>
+          <input type="number" class="form-control" id="bill-discount" min="0" step="0.01" value="0">
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select class="form-control" id="bill-payment">
+            <option value="cash">Cash</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bill-totals" id="bill-totals"></div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:16px" id="generate-btn" disabled>Generate Receipt</button>
+    </div>
+  </div>
+
+  <!-- Recent bills -->
+  <div class="pos-layout" style="padding-top:0">
+    <div class="pos-panel" style="grid-column:1 / -1">
+      <h2>Recent Bills</h2>
+      <div class="admin-table">
+        <table>
+          <thead>
+            <tr><th>Bill #</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Time</th><th></th></tr>
+          </thead>
+          <tbody id="recent-bills-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal-overlay" id="receipt-modal">
+    <div class="modal receipt-modal">
+      <div class="modal-header">
+        <h2>Receipt</h2>
+        <button class="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="receipt-print" class="receipt-preview"></div>
+        <div class="share-actions">
+          <button class="btn btn-whatsapp" id="whatsapp-btn">Send on WhatsApp</button>
+          <button class="btn btn-secondary" id="pdf-btn">Download PDF</button>
+          <button class="btn btn-secondary" id="print-btn">Print</button>
+          <button class="btn btn-primary new-bill" id="new-bill-btn">＋ New Bill</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF generation for shareable receipts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const STORE = {
+      name: 'Thirst.',
+      tagline: 'Sweet Stories, Frozen',
+      address: 'No. 01, Siva Vishnu Kovil Street, Kakkalur, Thiruvallur – 602 001',
+      phone: '+91 98409 12345',
+      fssai: '22425478001152',
+      gstRate: 0.05
+    };
+
+    let menu = [];
+    let bill = []; // { key, id?, name, price, quantity }
+    let lastBill = null;
+
+    function money(n) { return App.formatCurrency(n); }
+
+    function computeTotals() {
+      const subtotal = bill.reduce((s, it) => s + it.price * it.quantity, 0);
+      const discount = Math.min(parseFloat(document.getElementById('bill-discount').value) || 0, subtotal);
+      const taxable = Math.max(0, subtotal - discount);
+      const tax = Math.round(taxable * STORE.gstRate * 100) / 100;
+      const total = Math.round((taxable + tax) * 100) / 100;
+      return { subtotal, discount, tax, total };
+    }
+
+    function renderMenu(filter = '') {
+      const grid = document.getElementById('pos-menu-grid');
+      const q = filter.trim().toLowerCase();
+      const list = q ? menu.filter(m => m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)) : menu;
+      grid.innerHTML = list.map(m => `
+        <button type="button" class="pos-menu-card" data-id="${m.id}">
+          <h4>${m.name}</h4>
+          <div class="cat">${m.category}</div>
+          <div class="price">${money(m.price)}</div>
+        </button>
+      `).join('') || '<p class="bill-empty">No matching items.</p>';
+      grid.querySelectorAll('.pos-menu-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const item = menu.find(m => m.id === Number(card.dataset.id));
+          if (item) addToBill({ id: item.id, name: item.name, price: item.price });
+        });
+      });
+    }
+
+    function addToBill({ id, name, price }) {
+      const key = id != null ? 'm' + id : 'c' + name.toLowerCase();
+      const existing = bill.find(b => b.key === key);
+      if (existing) existing.quantity += 1;
+      else bill.push({ key, id, name, price: Number(price), quantity: 1 });
+      renderBill();
+    }
+
+    function changeQty(key, delta) {
+      const it = bill.find(b => b.key === key);
+      if (!it) return;
+      it.quantity += delta;
+      if (it.quantity <= 0) bill = bill.filter(b => b.key !== key);
+      renderBill();
+    }
+
+    function removeLine(key) { bill = bill.filter(b => b.key !== key); renderBill(); }
+
+    function renderBill() {
+      const wrap = document.getElementById('bill-items');
+      if (!bill.length) {
+        wrap.innerHTML = '<div class="bill-empty">No items yet — tap a menu item to start.</div>';
+      } else {
+        wrap.innerHTML = bill.map(it => `
+          <div class="bill-line">
+            <div>
+              <div class="name">${it.name}</div>
+              <div class="unit">${money(it.price)} each</div>
+            </div>
+            <div class="bill-qty">
+              <button type="button" data-key="${it.key}" data-d="-1">−</button>
+              <span>${it.quantity}</span>
+              <button type="button" data-key="${it.key}" data-d="1">+</button>
+            </div>
+            <div>
+              <div class="line-total">${money(it.price * it.quantity)}</div>
+              <button class="bill-remove" data-remove="${it.key}">Remove</button>
+            </div>
+          </div>
+        `).join('');
+        wrap.querySelectorAll('.bill-qty button').forEach(b =>
+          b.addEventListener('click', () => changeQty(b.dataset.key, Number(b.dataset.d))));
+        wrap.querySelectorAll('.bill-remove').forEach(b =>
+          b.addEventListener('click', () => removeLine(b.dataset.remove)));
+      }
+      const t = computeTotals();
+      document.getElementById('bill-totals').innerHTML = `
+        <div class="row"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
+        <div class="row"><span>Discount</span><span>-${money(t.discount)}</span></div>
+        <div class="row"><span>GST (5%)</span><span>${money(t.tax)}</span></div>
+        <div class="row grand"><span>Total</span><span>${money(t.total)}</span></div>
+      `;
+      document.getElementById('generate-btn').disabled = bill.length === 0;
+    }
+
+    function buildReceiptHTML(b) {
+      const date = new Date(b.createdAt);
+      return `
+        <div class="receipt" id="receipt-el">
+          <div class="receipt-head">
+            <img src="assets/thirst-logo.png" alt="">
+            <h3>${STORE.name}</h3>
+            <p>${STORE.tagline}</p>
+            <p>${STORE.address}</p>
+            <p>${STORE.phone} · FSSAI: ${STORE.fssai}</p>
+          </div>
+          <div class="receipt-meta">
+            <div><span>Bill No.</span><strong>${b.billNumber}</strong></div>
+            <div><span>Date</span><span>${date.toLocaleString('en-IN')}</span></div>
+            ${b.customerName && b.customerName !== 'Walk-in Customer'
+              ? `<div><span>Customer</span><span>${b.customerName}${b.customerPhone ? ' · ' + b.customerPhone : ''}</span></div>`
+              : ''}
+          </div>
+          <div class="receipt-lines">
+            ${b.items.map(it => `
+              <div class="rl"><span>${it.name} <small>× ${it.quantity}</small></span><span>${money(it.price * it.quantity)}</span></div>
+            `).join('')}
+          </div>
+          <div class="receipt-totals">
+            <div class="rt"><span>Subtotal</span><span>${money(b.subtotal)}</span></div>
+            ${b.discount > 0 ? `<div class="rt"><span>Discount</span><span>-${money(b.discount)}</span></div>` : ''}
+            <div class="rt"><span>GST (5%)</span><span>${money(b.tax)}</span></div>
+            <div class="rt grand"><span>TOTAL</span><span>${money(b.total)}</span></div>
+          </div>
+          <div class="receipt-foot">
+            Thank you for visiting Thirst.<br>Sweet Stories, Frozen — see you again soon.
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------- PDF generation & sharing ---------- */
+    // Compact, receipt-shaped CSS used for both the PDF capture and printing so
+    // the right-aligned values stay inside the narrow receipt width.
+    const RECEIPT_CSS = `
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #fff; color: #1a0e08; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+      .receipt { width: 282px; padding: 14px; background: #fff; }
+      .receipt-head { text-align: center; margin-bottom: 10px; }
+      .receipt-head img { height: 96px; width: 96px; object-fit: contain; margin-bottom: 4px; }
+      .receipt-head h3 { font-family: Arial, Helvetica, sans-serif; font-size: 20px; margin: 6px 0 2px; }
+      .receipt-head p { font-size: 10px; line-height: 1.45; margin: 0; color: #333; }
+      .receipt-meta { font-size: 11px; margin: 10px 0; border-top: 1px dashed #999; border-bottom: 1px dashed #999; padding: 8px 0; }
+      .receipt-meta div { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+      .receipt-lines { font-size: 11px; margin: 10px 0; }
+      .receipt-lines .rl { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+      .receipt-lines small { color: #666; }
+      .receipt-totals { font-size: 11px; border-top: 1px dashed #999; padding-top: 8px; }
+      .receipt-totals .rt { display: flex; justify-content: space-between; padding: 2px 0; }
+      .receipt-totals .rt.grand { font-size: 15px; font-weight: 700; border-top: 1px solid #333; margin-top: 6px; padding-top: 8px; }
+      .receipt-foot { text-align: center; font-size: 10px; margin-top: 12px; border-top: 1px dashed #999; padding-top: 10px; color: #444; }
+    `;
+
+    // Renders the receipt into an isolated, receipt-width iframe and captures it
+    // to a crisp PDF (keeps the ₹ symbol and logo, values aligned correctly).
+    async function makePdfBlob(b) {
+      if (!window.jspdf || !window.html2canvas) throw new Error('PDF library still loading — try again in a moment');
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:310px;height:10px;border:0;';
+      document.body.appendChild(iframe);
+      try {
+        const d = iframe.contentWindow.document;
+        d.open();
+        d.write(`<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"><style>${RECEIPT_CSS}</style></head><body>${buildReceiptHTML(b)}</body></html>`);
+        d.close();
+        // wait for the logo image to load so it appears in the capture
+        await new Promise((res) => {
+          const img = d.querySelector('.receipt-head img');
+          if (!img || img.complete) return res();
+          img.onload = img.onerror = () => res();
+          setTimeout(res, 1500);
+        });
+        const target = d.querySelector('.receipt');
+        const canvas = await html2canvas(target, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdfW = 80; // mm — standard thermal receipt width
+        const pdfH = +((pdfW * canvas.height) / canvas.width).toFixed(2);
+        const doc = new jsPDF({ unit: 'mm', format: [pdfW, pdfH], compress: true });
+        doc.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+        return doc.output('blob');
+      } finally {
+        iframe.remove();
+      }
+    }
+
+    async function makePdfFile(b) {
+      const blob = await makePdfBlob(b);
+      return new File([blob], (b.billNumber || 'receipt') + '.pdf', { type: 'application/pdf' });
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+
+    async function withBusy(btn, label, fn) {
+      const orig = btn.textContent;
+      btn.disabled = true; btn.textContent = label;
+      try { await fn(); }
+      finally { btn.disabled = false; btn.textContent = orig; }
+    }
+
+    function showReceipt(b) {
+      lastBill = b;
+      document.getElementById('receipt-print').innerHTML = buildReceiptHTML(b);
+      App.openModal('receipt-modal');
+    }
+
+    // Print via a dedicated, isolated document sized like an 80mm POS receipt.
+    // This avoids printing the whole app and keeps it to a single clean page.
+    function printReceipt(b) {
+      const old = document.getElementById('receipt-print-frame');
+      if (old) old.remove();
+      const iframe = document.createElement('iframe');
+      iframe.id = 'receipt-print-frame';
+      iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(`<!doctype html><html><head><meta charset="utf-8">
+        <base href="${location.origin}/">
+        <title>${b.billNumber}</title>
+        <style>
+          @page { size: 80mm auto; margin: 4mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; color: #000; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+          .receipt { width: 72mm; }
+          .receipt-head { text-align: center; margin-bottom: 8px; }
+          .receipt-head img { height: 80px; width: 80px; object-fit: contain; }
+          .receipt-head h3 { font-family: Arial, Helvetica, sans-serif; font-size: 16px; margin: 6px 0 2px; }
+          .receipt-head p { font-size: 10px; line-height: 1.4; margin: 0; }
+          .receipt-meta { font-size: 11px; margin: 8px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 6px 0; }
+          .receipt-meta div { display: flex; justify-content: space-between; padding: 1px 0; gap: 10px; }
+          .receipt-lines { font-size: 11px; margin: 8px 0; }
+          .receipt-lines .rl { display: flex; justify-content: space-between; padding: 2px 0; gap: 10px; }
+          .receipt-lines small { color: #333; }
+          .receipt-totals { font-size: 11px; border-top: 1px dashed #000; padding-top: 6px; }
+          .receipt-totals .rt { display: flex; justify-content: space-between; padding: 1px 0; }
+          .receipt-totals .rt.grand { font-size: 14px; font-weight: 700; border-top: 1px solid #000; margin-top: 4px; padding-top: 6px; }
+          .receipt-foot { text-align: center; font-size: 10px; margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; }
+        </style></head><body>${buildReceiptHTML(b)}</body></html>`);
+      doc.close();
+
+      let printed = false;
+      const go = () => {
+        if (printed) return;
+        printed = true;
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+        finally { setTimeout(() => iframe.remove(), 800); }
+      };
+      const img = doc.querySelector('.receipt-head img');
+      if (img && !img.complete) { img.onload = go; img.onerror = go; setTimeout(go, 1500); }
+      else { setTimeout(go, 250); }
+    }
+
+    async function renderRecentBills() {
+      const tbody = document.getElementById('recent-bills-body');
+      try {
+        const bills = await API.getBills();
+        if (!bills.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-muted)">No bills yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = bills.slice(0, 20).map(b => `
+          <tr>
+            <td><strong>${b.billNumber}</strong></td>
+            <td>${b.customerName}</td>
+            <td>${b.items.reduce((s, i) => s + i.quantity, 0)}</td>
+            <td>${money(b.total)}</td>
+            <td>${(b.paymentMethod || '').toUpperCase()}</td>
+            <td style="white-space:nowrap">${new Date(b.createdAt).toLocaleString('en-IN')}</td>
+            <td><button class="btn btn-secondary btn-sm reprint-btn" data-id="${b.id}">View</button></td>
+          </tr>
+        `).join('');
+        tbody.querySelectorAll('.reprint-btn').forEach(btn =>
+          btn.addEventListener('click', async () => {
+            try { showReceipt(await API.getBill(btn.dataset.id)); }
+            catch (err) { App.showToast(err.message, 'error'); }
+          }));
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-error)">${err.message}</td></tr>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.init();
+      if (!Auth.requireStaff()) return;
+
+      const user = Auth.getUser();
+      document.getElementById('staff-chip').textContent = `${user.name} · ${user.role}`;
+      if (Auth.isAdmin()) document.getElementById('admin-link').style.display = '';
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await Auth.logout();
+        window.location.href = 'login.html';
+      });
+
+      try {
+        menu = await API.getMenu();
+      } catch (err) {
+        App.showToast('Could not load menu: ' + err.message, 'error');
+      }
+      renderMenu();
+      renderBill();
+      renderRecentBills();
+
+      document.getElementById('item-search').addEventListener('input', e => renderMenu(e.target.value));
+      document.getElementById('bill-discount').addEventListener('input', renderBill);
+
+      document.getElementById('custom-item-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const f = e.target;
+        const name = f.name.value.trim();
+        const price = parseFloat(f.price.value);
+        const qty = parseInt(f.quantity.value) || 1;
+        if (!name || !(price > 0)) { App.showToast('Enter a name and price', 'warning'); return; }
+        for (let i = 0; i < qty; i++) addToBill({ name, price });
+        f.reset(); f.quantity.value = 1;
+      });
+
+      document.getElementById('generate-btn').addEventListener('click', async () => {
+        if (!bill.length) return;
+        const btn = document.getElementById('generate-btn');
+        btn.disabled = true; btn.textContent = 'Generating…';
+        try {
+          const created = await API.createBill({
+            customerName: document.getElementById('cust-name').value.trim() || 'Walk-in Customer',
+            customerPhone: document.getElementById('cust-phone').value.trim(),
+            items: bill.map(b => ({ name: b.name, price: b.price, quantity: b.quantity })),
+            discount: parseFloat(document.getElementById('bill-discount').value) || 0,
+            taxRate: STORE.gstRate,
+            paymentMethod: document.getElementById('bill-payment').value
+          });
+          showReceipt(created);
+          renderRecentBills();
+        } catch (err) {
+          App.showToast(err.message, 'error');
+        } finally {
+          btn.disabled = false; btn.textContent = 'Generate Receipt';
+        }
+      });
+
+      // Share actions — all produce a PDF of the bill
+      document.getElementById('whatsapp-btn').addEventListener('click', (e) => {
+        if (!lastBill) return;
+        withBusy(e.currentTarget, 'Preparing PDF…', async () => {
+          try {
+            const file = await makePdfFile(lastBill);
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              // Mobile/tablet: native share sheet → pick WhatsApp → PDF attached
+              await navigator.share({ files: [file], title: 'Bill ' + lastBill.billNumber, text: 'Your Thirst. bill' });
+            } else {
+              // Desktop: wa.me can't attach files, so download the PDF and open the chat to attach it
+              downloadBlob(file, file.name);
+              const phone = (lastBill.customerPhone || '').replace(/\D/g, '');
+              const wa = phone ? `https://wa.me/91${phone}` : 'https://wa.me/';
+              window.open(wa, '_blank', 'noopener');
+              App.showToast('Bill saved as PDF — attach it in the WhatsApp chat that just opened', 'info', 5000);
+            }
+          } catch (err) {
+            if (!(err && err.name === 'AbortError')) App.showToast(err.message, 'error');
+          }
+        });
+      });
+
+      document.getElementById('pdf-btn').addEventListener('click', (e) => {
+        if (!lastBill) return;
+        withBusy(e.currentTarget, 'Preparing…', async () => {
+          try {
+            const blob = await makePdfBlob(lastBill);
+            downloadBlob(blob, (lastBill.billNumber || 'receipt') + '.pdf');
+            App.showToast('PDF downloaded', 'success');
+          } catch (err) {
+            App.showToast(err.message, 'error');
+          }
+        });
+      });
+
+      document.getElementById('print-btn').addEventListener('click', () => { if (lastBill) printReceipt(lastBill); });
+      document.getElementById('new-bill-btn').addEventListener('click', () => {
+        bill = []; lastBill = null;
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        document.getElementById('bill-discount').value = '0';
+        renderBill();
+        App.closeModal('receipt-modal');
+      });
+    });
+  </script>
+</body>
+</html>

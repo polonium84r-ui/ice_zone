@@ -6,6 +6,8 @@ const Admin = (() => {
   let menuItems = [];
   let orders = [];
   let reviews = [];
+  let users = [];
+  let userRoleFilter = '';
 
   async function init() {
     if (!Auth.requireAdmin()) return;
@@ -20,7 +22,11 @@ const Admin = (() => {
     renderOrders();
     renderReviews();
     await renderCoupons();
+    await renderUsers();
+    await renderAudit();
     bindEvents();
+    bindUserEvents();
+    bindAuditEvents();
   }
 
   function initNavigation() {
@@ -274,5 +280,183 @@ const Admin = (() => {
     }
   }
 
-  return { init, renderCoupons };
+  /* ---------------- User Management ---------------- */
+  async function renderUsers() {
+    const tbody = document.getElementById('users-table-body');
+    if (!tbody) return;
+    try {
+      users = await API.getUsers(userRoleFilter || undefined);
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--color-error)">${err.message}</td></tr>`;
+      return;
+    }
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--color-text-muted)">No users found</td></tr>';
+      return;
+    }
+    const me = Auth.getUser();
+    tbody.innerHTML = users.map(u => `
+      <tr data-id="${u.id}">
+        <td><strong>${u.name}</strong></td>
+        <td>${u.email}</td>
+        <td>${u.phone || '—'}</td>
+        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+        <td>${u.active
+          ? '<span class="status-pill status-active">Active</span>'
+          : '<span class="status-pill status-inactive">Disabled</span>'}</td>
+        <td>${new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm edit-user-btn" data-id="${u.id}">Edit</button>
+            ${u.id === me.id ? '' : (u.active
+              ? `<button class="btn btn-secondary btn-sm disable-user-btn" data-id="${u.id}">Disable</button>`
+              : `<button class="btn btn-primary btn-sm enable-user-btn" data-id="${u.id}">Enable</button>`)}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.edit-user-btn').forEach(btn => {
+      btn.addEventListener('click', () => openEditUser(btn.dataset.id));
+    });
+    tbody.querySelectorAll('.disable-user-btn').forEach(btn => {
+      btn.addEventListener('click', () => setUserActive(btn.dataset.id, false));
+    });
+    tbody.querySelectorAll('.enable-user-btn').forEach(btn => {
+      btn.addEventListener('click', () => setUserActive(btn.dataset.id, true));
+    });
+  }
+
+  function openEditUser(id) {
+    const u = users.find(x => x.id === id);
+    if (!u) return;
+    const form = document.getElementById('edit-user-form');
+    form.elements['id'].value = u.id;
+    form.elements['name'].value = u.name;
+    form.elements['phone'].value = u.phone || '';
+    form.elements['role'].value = u.role;
+    form.elements['password'].value = '';
+    App.openModal('edit-user-modal');
+  }
+
+  async function setUserActive(id, active) {
+    const u = users.find(x => x.id === id);
+    if (!active && !confirm(`Disable ${u ? u.name : 'this user'}? They will no longer be able to log in.`)) return;
+    try {
+      if (active) {
+        await API.updateUser(id, { active: true });
+      } else {
+        await API.disableUser(id);
+      }
+      App.showToast(active ? 'User enabled' : 'User disabled', 'success');
+      await renderUsers();
+    } catch (err) {
+      App.showToast(err.message, 'error');
+    }
+  }
+
+  function bindUserEvents() {
+    const addBtn = document.getElementById('add-user-btn');
+    if (addBtn) addBtn.addEventListener('click', () => App.openModal('add-user-modal'));
+
+    const addForm = document.getElementById('add-user-form');
+    if (addForm) {
+      App.setupFieldValidation(addForm);
+      addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(addForm);
+        const user = {
+          name: fd.get('name').trim(),
+          email: fd.get('email').trim(),
+          phone: (fd.get('phone') || '').trim(),
+          role: fd.get('role'),
+          password: fd.get('password')
+        };
+        if (!user.name || !user.email || user.password.length < 6) {
+          App.showToast('Please fill all fields (password min 6 chars)', 'error');
+          return;
+        }
+        try {
+          await API.createUser(user);
+          addForm.reset();
+          App.closeModal('add-user-modal');
+          App.showToast(`${user.role.charAt(0).toUpperCase() + user.role.slice(1)} account created`, 'success');
+          await renderUsers();
+        } catch (err) {
+          App.showToast(err.message, 'error');
+        }
+      });
+    }
+
+    const editForm = document.getElementById('edit-user-form');
+    if (editForm) {
+      editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(editForm);
+        const id = fd.get('id');
+        const updates = { name: fd.get('name').trim(), phone: (fd.get('phone') || '').trim(), role: fd.get('role') };
+        const pw = fd.get('password');
+        if (pw) updates.password = pw;
+        try {
+          await API.updateUser(id, updates);
+          App.closeModal('edit-user-modal');
+          App.showToast('User updated', 'success');
+          await renderUsers();
+        } catch (err) {
+          App.showToast(err.message, 'error');
+        }
+      });
+    }
+
+    const filter = document.getElementById('user-role-filter');
+    if (filter) {
+      filter.querySelectorAll('[data-role]').forEach(chip => {
+        chip.addEventListener('click', async () => {
+          filter.querySelectorAll('[data-role]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          userRoleFilter = chip.dataset.role;
+          await renderUsers();
+        });
+      });
+    }
+  }
+
+  /* ---------------- Audit Log ---------------- */
+  async function renderAudit(actionFilter = '') {
+    const tbody = document.getElementById('audit-table-body');
+    if (!tbody) return;
+    let logs;
+    try {
+      logs = await API.getAuditLogs({ limit: 250, action: actionFilter || undefined });
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-error)">${err.message}</td></tr>`;
+      return;
+    }
+    if (!logs.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-text-muted)">No activity yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = logs.map(l => `
+      <tr>
+        <td>${l.userName || '—'}</td>
+        <td><span class="role-badge role-${l.userRole}">${l.userRole || '—'}</span></td>
+        <td><code class="audit-action">${l.action}</code></td>
+        <td>${l.entityType ? `${l.entityType} ${l.entityId ? '#' + l.entityId : ''}` : '—'}</td>
+        <td style="color:var(--color-text-muted);font-size:13px">${l.details ? formatDetails(l.details) : '—'}</td>
+        <td style="white-space:nowrap">${new Date(l.createdAt).toLocaleString('en-IN')}</td>
+      </tr>
+    `).join('');
+  }
+
+  function formatDetails(d) {
+    if (typeof d === 'string') return d;
+    return Object.entries(d).map(([k, v]) => `${k}: ${v}`).join(', ');
+  }
+
+  function bindAuditEvents() {
+    const filter = document.getElementById('audit-filter');
+    if (filter) filter.addEventListener('change', () => renderAudit(filter.value));
+  }
+
+  return { init, renderCoupons, renderUsers, renderAudit };
 })();

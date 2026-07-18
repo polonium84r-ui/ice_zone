@@ -1,7 +1,7 @@
 {
-  "name": "Popsicle Stories - Handcrafted Frozen Treats",
-  "short_name": "Popsicle Stories",
-  "description": "Order handcrafted kunafa popsicles, kulfi & frozen treats online. Fresh, delicious desserts delivered to your door in Thiruvallur.",
+  "name": "Thirst. - Handcrafted Frozen Treats",
+  "short_name": "Thirst.",
+  "description": "Order handcrafted kunafa, kulfi & frozen treats online. Fresh, delicious desserts delivered to your door in Thiruvallur.",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#FFF8F1",
@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍦</text></svg>",
+      "src": "assets/thirst-logo.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍦</text></svg>",
+      "src": "assets/thirst-logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],

@@ -30,6 +30,16 @@ const Auth = (() => {
     return currentSession?.user?.role === 'customer';
   }
 
+  function isStaff() {
+    return currentSession?.user?.role === 'staff';
+  }
+
+  // Staff-capable = staff or admin (admin can do everything staff can)
+  function canStaff() {
+    const role = currentSession?.user?.role;
+    return role === 'staff' || role === 'admin';
+  }
+
   async function login(email, password) {
     const session = await API.login(email, password);
     currentSession = session;
@@ -71,6 +81,15 @@ const Auth = (() => {
     return true;
   }
 
+  // Allows staff OR admin (POS billing). Redirects everyone else to login.
+  function requireStaff(redirectUrl = 'login.html') {
+    if (!canStaff()) {
+      window.location.href = redirectUrl + '?redirect=' + encodeURIComponent(window.location.pathname);
+      return false;
+    }
+    return true;
+  }
+
   function getRewardPoints() {
     return currentSession?.user?.rewardPoints || 0;
   }
@@ -87,12 +106,15 @@ const Auth = (() => {
     isLoggedIn,
     isAdmin,
     isCustomer,
+    isStaff,
+    canStaff,
     login,
     register,
     logout,
     requireAuth,
     requireAdmin,
     requireCustomer,
+    requireStaff,
     getRewardPoints,
     refreshSession
   };
