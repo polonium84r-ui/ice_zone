@@ -4,50 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <link rel="icon" type="image/png" href="assets/thirst-logo.png">
-  
+
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Thirst. — Handcrafted kunafa, kulfi & frozen treats in Thiruvallur. Order online for fresh, delicious desserts delivered to your door.">
-  <meta name="keywords" content="kulfi, kunafa, ice cream, frozen desserts, Thiruvallur, online ordering, food delivery">
+  <meta name="description" content="Thirst. — Handcrafted kunafa, kulfi & frozen treats in Thiruvallur. Fresh, delicious desserts made daily.">
+  <meta name="keywords" content="kulfi, kunafa, ice cream, frozen desserts, Thiruvallur, popsicles">
   <meta name="author" content="Thirst.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.thirst.in/">
-  
-  <!-- Open Graph Meta Tags -->
+
+  <!-- Open Graph -->
   <meta property="og:title" content="Thirst. — Sweet Stories, Frozen">
-  <meta property="og:description" content="Handcrafted kunafa, kulfi & frozen treats in Thiruvallur. Order online now!">
+  <meta property="og:description" content="Handcrafted kunafa, kulfi & frozen treats in Thiruvallur.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.thirst.in/">
   <meta property="og:image" content="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1200&q=80">
-  
-  <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Thirst. — Sweet Stories, Frozen">
-  <meta name="twitter:description" content="Handcrafted frozen treats. Order online now!">
-  <meta name="twitter:image" content="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1200&q=80">
-  
-  <!-- Theme Color -->
+
   <meta name="theme-color" content="#C4213C">
-  
   <title>Thirst. — Sweet Stories, Frozen | Handcrafted Kunafa & Kulfi</title>
-  
-  <!-- Preconnect for Performance -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://images.unsplash.com">
-  
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-  
-  <!-- Stylesheet -->
   <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- PWA Manifest -->
+  <style>
+    /* Hide the navbar "View Menu" button on mobile — the drawer + hero CTA cover it. */
+    @media (max-width: 768px) { .order-nav-btn { display: none; } }
+  </style>
+
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Thirst.">
-  
+
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -70,10 +61,10 @@
   </script>
 </head>
 <body>
-  <!-- Skip to main content for accessibility -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
+
   <!-- Navbar -->
-  <nav class="navbar transparent navbar-homepage" role="navigation" aria-label="Main navigation">
+  <nav class="navbar transparent" role="navigation" aria-label="Main navigation">
     <div class="container">
       <a href="index.html" class="navbar-logo">
         <img src="assets/thirst-logo.png" alt="Thirst." class="navbar-logo-img">
@@ -84,6 +75,7 @@
         <a href="about.html">About</a>
       </div>
       <div class="nav-actions">
+        <a href="menu.html" class="btn btn-primary btn-sm order-nav-btn">View Menu</a>
         <div class="hamburger" aria-label="Menu toggle"><span></span><span></span><span></span></div>
       </div>
     </div>
@@ -97,47 +89,179 @@
     <a href="about.html">About</a>
   </div>
 
-  <!-- Scroll Story Sequence Section (Hero) -->
-  <section class="story-scroll-section" id="story-scroll" aria-label="Interactive frozen-treat crafting story">
-    <div class="story-loader">
-      <div class="spinner"></div>
-      <p>Loading interactive experience... <span id="loading-progress">0</span>%</p>
+  <!-- Hero -->
+  <header class="hero" id="main-content">
+    <div class="hero-bg">
+      <img src="assets/hero.jpg" alt="Handcrafted frozen popsicles" fetchpriority="high">
     </div>
-    <div class="story-canvas-container">
-      <canvas id="story-canvas"></canvas>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <span class="story-badge">📍 Now in Thiruvallur</span>
+      <h1>Sweet Stories, Frozen</h1>
+      <p>Handcrafted kunafa, kulfi & frozen treats — slow-churned, made fresh daily from real fruit and honest ingredients.</p>
+      <div class="hero-ctas">
+        <a href="menu.html" class="btn btn-primary btn-lg">View Menu</a>
+        <a href="about.html" class="btn btn-ghost btn-lg">Our Story</a>
+      </div>
     </div>
-    <div class="story-overlay-content">
-      <!-- End Frame CTA (Right Aligned, Transparent, No Blur) -->
-      <div class="story-text-card text-card-cta">
-        <h2>Sweet Stories, Frozen</h2>
-        <p>Handcrafted kunafa, kulfi & frozen treats — slow-churned, made fresh daily, and delivered chilled to your door.</p>
-        <div class="story-ctas" style="margin-top: 24px; display: flex; gap: 16px; justify-content: flex-start;">
-          <a href="menu.html" class="btn btn-primary btn-lg" aria-label="View Menu">View Menu</a>
-        </div>
+  </header>
+
+  <!-- Promo strip -->
+  <div class="promo-strip">
+    <div class="container">
+      <div class="promo-carousel" id="promo-carousel"></div>
+    </div>
+  </div>
+
+  <!-- Why Thirst -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title reveal">Why Thirst.</h2>
+      <p class="section-subtitle reveal">Every treat is a little moment of joy — made with care, served with a smile.</p>
+      <div class="card-grid" id="features"></div>
+    </div>
+  </section>
+
+  <!-- Popular Treats -->
+  <section class="section" style="background:var(--color-surface)">
+    <div class="container">
+      <h2 class="section-title reveal">Popular Treats</h2>
+      <p class="section-subtitle reveal">A few favourites from our handcrafted menu.</p>
+      <div class="card-grid" id="popular"></div>
+      <div class="text-center mt-3 reveal">
+        <a href="menu.html" class="btn btn-primary btn-lg">Explore Full Menu</a>
       </div>
     </div>
   </section>
 
-  <!-- GSAP & ScrollTrigger -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <!-- Testimonials -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title reveal">Loved by Locals</h2>
+      <p class="section-subtitle reveal">What our neighbours in Thiruvallur are saying.</p>
+      <div class="card-grid card-grid-3 reveal" id="testimonials"></div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="section" style="text-align:center;background:var(--color-surface)">
+    <div class="container reveal">
+      <h2 class="section-title">Craving Something Frozen?</h2>
+      <p class="section-subtitle">Explore our full menu of kunafa, kulfi, fruit pops & shakes — freshly made every day.</p>
+      <a href="menu.html" class="btn btn-primary btn-lg">View the Menu</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4><img src="assets/thirst-logo.png" alt="" class="footer-logo-img">Thirst.</h4>
+          <p>Handcrafted kunafa &amp; kulfi treats. Sweet stories, frozen — made fresh in Thiruvallur.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook">📘</a>
+            <a href="https://www.instagram.com/popsicle__stories" target="_blank" rel="noopener" aria-label="Instagram">📷</a>
+            <a href="#" aria-label="Twitter">🐦</a>
+          </div>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="about.html">About Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Opening Hours</h4>
+          <ul>
+            <li>Mon – Fri: 12:00 PM – 11:00 PM</li>
+            <li>Saturday: 12:00 PM – 11:30 PM</li>
+            <li>Sunday: 12:00 PM – 11:30 PM</li>
+            <li>Fresh batches made daily</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact Us</h4>
+          <p>No. 01, Siva Vishnu Kovil Street,<br>Kakkalur, Thiruvallur – 602 001</p>
+          <p>📞 +91 98409 12345</p>
+          <p>✉️ hello@thirst.in</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Thirst. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/scroll-animation.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       await App.init({ transparent: true, activePage: 'index' });
+
+      // Promo strip
+      const promo = document.getElementById('promo-carousel');
+      if (promo && typeof PROMO_OFFERS !== 'undefined') {
+        promo.innerHTML = PROMO_OFFERS.map((p, i) => `
+          <div class="promo-item ${i === 0 ? 'active' : ''}"><span>${p.icon}</span><span>${p.text}</span></div>
+        `).join('');
+        App.initPromoCarousel();
+      }
+
+      // Why Thirst — feature cards
+      const features = document.getElementById('features');
+      if (features && typeof WHY_CHOOSE_US !== 'undefined') {
+        features.innerHTML = WHY_CHOOSE_US.map(f => `
+          <div class="feature-card reveal">
+            <div class="feature-icon">${f.icon}</div>
+            <h3>${f.title}</h3>
+            <p>${f.desc}</p>
+          </div>
+        `).join('');
+      }
+
+      // Popular treats — pulled live from the menu
+      try {
+        const menu = await API.getMenu();
+        const popular = [...menu].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 4);
+        const grid = document.getElementById('popular');
+        grid.innerHTML = popular.map(item => App.renderDishCard(item, { compact: true })).join('');
+        // Whole cards lead to the menu (browse-only site).
+        grid.querySelectorAll('.dish-card').forEach(card => {
+          card.addEventListener('click', () => window.location.href = 'menu.html');
+        });
+      } catch {
+        document.getElementById('popular').innerHTML =
+          '<p style="grid-column:1/-1;text-align:center;color:var(--color-text-muted)">Menu is loading — <a href="menu.html">view it here</a>.</p>';
+      }
+
+      // Testimonials
+      const tst = document.getElementById('testimonials');
+      if (tst && typeof TESTIMONIALS !== 'undefined') {
+        tst.innerHTML = TESTIMONIALS.map(t => `
+          <div class="testimonial-card">
+            <div class="testimonial-header">
+              <img class="testimonial-avatar" src="${t.avatar}" alt="${t.name}" loading="lazy">
+              <div><strong>${t.name}</strong></div>
+            </div>
+            <div class="testimonial-stars">${'★'.repeat(t.rating)}</div>
+            <p class="testimonial-text">${t.text}</p>
+          </div>
+        `).join('');
+      }
+
+      // Reveal any content added after initial load
+      App.initScrollReveal();
     });
 
-    // Register Service Worker for PWA
+    // PWA service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[SW] Registered:', reg))
-          .catch(err => console.log('[SW] Registration failed:', err));
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
   </script>

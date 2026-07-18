@@ -16,9 +16,9 @@ const CATEGORIES = [
 
 
 const PROMO_OFFERS = [
-  { text: 'Flat 20% off your first order — code SWEET20', icon: '🍦' },
-  { text: 'Free delivery on orders above ₹499', icon: '🚚' },
-  { text: 'Now open in Thiruvallur — Kunafa treats are here!', icon: '🎉' }
+  { text: 'Now open in Thiruvallur — come taste the Kunafa!', icon: '🎉' },
+  { text: 'Fresh handcrafted batches made every day', icon: '🍦' },
+  { text: '100% real fruit — no artificial colours', icon: '🍓' }
 ];
 
 const TESTIMONIALS = [

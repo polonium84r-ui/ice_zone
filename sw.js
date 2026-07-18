@@ -15,7 +15,8 @@ const ASSETS_TO_CACHE = [
   '/js/auth.js',
   '/js/app.js',
   '/manifest.json',
-  '/assets/thirst-logo.png'
+  '/assets/thirst-logo.png',
+  '/assets/hero.jpg'
 ];
 
 // Install event - cache assets
