@@ -6,8 +6,8 @@ const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 
-// On Render, use the mounted persistent disk at /data; locally use server/data
-const DATA_DIR = process.env.RENDER ? '/data' : path.join(__dirname, 'data');
+// Use RENDER_DB_PATH env var if set (paid disk), otherwise default to server/data
+const DATA_DIR = process.env.RENDER_DB_PATH || path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const db = new Database(path.join(DATA_DIR, 'thirst.db'));
