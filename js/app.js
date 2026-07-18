@@ -61,8 +61,6 @@ const App = (() => {
     });
 
     initHamburger();
-    updateAuthUI();
-    updateCartBadge();
   }
 
   function initHamburger() {
@@ -81,65 +79,6 @@ const App = (() => {
     hamburger.addEventListener('click', toggle);
     overlay?.addEventListener('click', toggle);
     drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', toggle));
-  }
-
-  function updateAuthUI() {
-    const loginLink = document.querySelector('.nav-login-link');
-    const userMenu = document.querySelector('.user-menu');
-    const drawerLoginLink = document.querySelector('.mobile-drawer a[href="login.html"]');
-    // Any other "Login" call-to-action (e.g. the homepage hero button).
-    const loginCtas = document.querySelectorAll('.js-login-cta');
-    if (!loginLink && !userMenu && !loginCtas.length) return;
-
-    const user = Auth.getUser();
-    if (user) {
-      if (loginLink) loginLink.style.display = 'none';
-      if (drawerLoginLink) drawerLoginLink.style.display = 'none';
-      loginCtas.forEach(el => el.style.display = 'none');
-      if (userMenu) {
-        userMenu.style.display = 'block';
-        const btn = userMenu.querySelector('.user-menu-btn');
-        if (btn) btn.innerHTML = `Hi, ${user.name.split(' ')[0]} <span>▾</span>`;
-
-        const logoutBtn = userMenu.querySelector('.logout-btn');
-        if (logoutBtn) {
-          logoutBtn.onclick = async (e) => {
-            e.preventDefault();
-            await Auth.logout();
-            showToast('Logged out successfully', 'success');
-            setTimeout(() => window.location.href = 'index.html', 500);
-          };
-        }
-
-        const menuBtn = userMenu.querySelector('.user-menu-btn');
-        const dropdown = userMenu.querySelector('.user-dropdown');
-        if (menuBtn && dropdown) {
-          menuBtn.onclick = () => dropdown.classList.toggle('open');
-          document.addEventListener('click', (e) => {
-            if (!userMenu.contains(e.target)) dropdown.classList.remove('open');
-          });
-        }
-      }
-    } else {
-      if (loginLink) loginLink.style.display = '';
-      if (drawerLoginLink) drawerLoginLink.style.display = '';
-      loginCtas.forEach(el => el.style.display = '');
-      if (userMenu) userMenu.style.display = 'none';
-    }
-  }
-
-  function updateCartBadge() {
-    const badges = document.querySelectorAll('.cart-badge');
-    const count = Cart.getCount();
-    badges.forEach(badge => {
-      const prev = parseInt(badge.textContent) || 0;
-      badge.textContent = count;
-      badge.style.display = count > 0 ? 'flex' : 'none';
-      if (count > prev) {
-        badge.classList.add('bounce');
-        setTimeout(() => badge.classList.remove('bounce'), 500);
-      }
-    });
   }
 
   /* --- Scroll Reveal --- */
@@ -287,31 +226,6 @@ const App = (() => {
     return true;
   }
 
-  /* --- Fly to Cart Animation --- */
-  function flyToCart(sourceEl) {
-    const cartBtn = document.querySelector('.cart-btn');
-    if (!cartBtn || !sourceEl) return;
-
-    const sourceRect = sourceEl.getBoundingClientRect();
-    const cartRect = cartBtn.getBoundingClientRect();
-
-    const fly = document.createElement('div');
-    fly.className = 'fly-item';
-    fly.style.background = 'var(--color-primary)';
-    fly.style.left = sourceRect.left + sourceRect.width / 2 - 20 + 'px';
-    fly.style.top = sourceRect.top + sourceRect.height / 2 - 20 + 'px';
-    document.body.appendChild(fly);
-
-    requestAnimationFrame(() => {
-      fly.style.left = cartRect.left + cartRect.width / 2 - 20 + 'px';
-      fly.style.top = cartRect.top + cartRect.height / 2 - 20 + 'px';
-      fly.style.transform = 'scale(0.3)';
-      fly.style.opacity = '0.5';
-    });
-
-    setTimeout(() => fly.remove(), 600);
-  }
-
   /* --- Modal Helpers --- */
   function openModal(modalId) {
     const overlay = document.getElementById(modalId);
@@ -346,12 +260,9 @@ const App = (() => {
     });
   }
 
-  /* --- Render Dish Card --- */
+  /* --- Render Dish Card (display-only showcase) --- */
   function renderDishCard(item, options = {}) {
-    const { showStepper = true, compact = false } = options;
-    const cartItem = Cart.getItems().find(ci => ci.id === item.id);
-    const qty = cartItem?.quantity || 0;
-
+    const { compact = false } = options;
     return `
       <div class="dish-card reveal" data-id="${item.id}">
         <div class="dish-card-image">
@@ -370,99 +281,20 @@ const App = (() => {
           </div>
           <div class="dish-footer">
             <span class="dish-price">${formatCurrency(item.price)}</span>
-            ${showStepper ? `
-              <div class="dish-actions" data-id="${item.id}">
-                ${qty > 0 ? `
-                  <div class="qty-stepper">
-                    <button class="qty-minus" aria-label="Decrease quantity">−</button>
-                    <span>${qty}</span>
-                    <button class="qty-plus" aria-label="Increase quantity">+</button>
-                  </div>
-                ` : `
-                  <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${item.id}">Add</button>
-                `}
-              </div>
-            ` : `
-              <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${item.id}">Add to Cart</button>
-            `}
           </div>
         </div>
       </div>
     `;
   }
 
+  // Cards are informational — clicking one opens the read-only detail view.
   function bindDishCardEvents(container, menuItems) {
-    container.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = parseInt(btn.dataset.id);
-        await Cart.addItem(id, 1);
-        App.flyToCart(btn);
-        App.showToast('Added to cart!', 'success');
-        const card = btn.closest('.dish-card');
-        if (card) {
-          const item = menuItems.find(m => m.id === id);
-          if (item) {
-            const actions = card.querySelector('.dish-actions');
-            if (actions) {
-              actions.innerHTML = `
-                <div class="qty-stepper">
-                  <button class="qty-minus" aria-label="Decrease quantity">−</button>
-                  <span>1</span>
-                  <button class="qty-plus" aria-label="Increase quantity">+</button>
-                </div>
-              `;
-              bindStepper(actions, id, menuItems, container);
-            }
-          }
-        }
-      });
-    });
-
-    container.querySelectorAll('.qty-stepper').forEach(stepper => {
-      const card = stepper.closest('.dish-card');
-      const id = parseInt(card?.dataset.id);
-      if (id) bindStepper(stepper.parentElement, id, menuItems, container);
-    });
-
     container.querySelectorAll('.dish-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return;
+      card.addEventListener('click', () => {
         const id = parseInt(card.dataset.id);
         const item = menuItems.find(m => m.id === id);
         if (item && typeof openDishDetail === 'function') openDishDetail(item);
       });
-    });
-  }
-
-  function bindStepper(actionsEl, dishId, menuItems, container) {
-    const minus = actionsEl.querySelector('.qty-minus');
-    const plus = actionsEl.querySelector('.qty-plus');
-    const span = actionsEl.querySelector('.qty-stepper span');
-
-    minus?.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const cartItem = Cart.getItems().find(ci => ci.id === dishId);
-      const newQty = (cartItem?.quantity || 0) - 1;
-      await Cart.updateQuantity(dishId, newQty);
-      if (newQty <= 0) {
-        const card = actionsEl.closest('.dish-card');
-        if (card) {
-          actionsEl.innerHTML = `<button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${dishId}">Add</button>`;
-          bindDishCardEvents(container || card.parentElement, menuItems);
-        }
-      } else if (span) {
-        span.textContent = newQty;
-      }
-    });
-
-    plus?.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const cartItem = Cart.getItems().find(ci => ci.id === dishId);
-      const newQty = (cartItem?.quantity || 0) + 1;
-      await Cart.updateQuantity(dishId, newQty);
-      if (span) span.textContent = newQty;
-      App.flyToCart(plus);
     });
   }
 
@@ -487,9 +319,7 @@ const App = (() => {
 
   /* --- Global Init --- */
   async function init(options = {}) {
-    API.initStorage();
     await Auth.init();
-    await Cart.init();
     initNavbar(options);
     initScrollReveal();
     initLazyImages();
@@ -501,8 +331,6 @@ const App = (() => {
     showToast,
     formatCurrency,
     initNavbar,
-    updateAuthUI,
-    updateCartBadge,
     initScrollReveal,
     initPromoCarousel,
     initLazyImages,
@@ -513,13 +341,11 @@ const App = (() => {
     clearFieldError,
     setupFieldValidation,
     validateField,
-    flyToCart,
     openModal,
     closeModal,
     initModals,
     renderDishCard,
     bindDishCardEvents,
-    bindStepper,
     animateCountUp,
     init
   };

@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="assets/thirst-logo.png">
-  <meta name="description" content="Login to Thirst. — Customer & Admin access">
-  <title>Login — Thirst.</title>
+  <meta name="description" content="Thirst. staff & admin sign in">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Staff & Admin Login — Thirst.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -18,8 +19,8 @@
       <img src="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=800&q=80" alt="Gourmet handcrafted frozen treats">
       <div class="auth-image-overlay">
         <div>
-          <h2>Welcome to Thirst.</h2>
-          <p style="margin-top:12px;opacity:0.9">Sign in to order, earn rewards, and enjoy exclusive offers.</p>
+          <h2>Thirst. Console</h2>
+          <p style="margin-top:12px;opacity:0.9">Sign in to manage the menu, run billing, and view your store.</p>
         </div>
       </div>
     </div>
@@ -28,101 +29,27 @@
     <div class="auth-form-panel">
       <div class="auth-card">
         <img src="assets/thirst-logo.png" alt="Thirst." class="auth-logo-img">
-        <h1>Sign In</h1>
-        <p class="subtitle">Access your account to order delicious food</p>
+        <h1>Staff &amp; Admin</h1>
+        <p class="subtitle">Sign in to your Thirst. account</p>
 
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="customer">Customer Login</button>
-          <button class="tab-btn" data-tab="admin">Staff / Admin</button>
-        </div>
-
-        <!-- Customer Login -->
-        <div class="tab-panel active" id="tab-customer">
-          <form id="customer-login-form">
-            <div class="form-group">
-              <label for="customer-email">Email Address</label>
-              <input type="email" id="customer-email" class="form-control" data-validate="email" required placeholder="you@example.com">
-              <span class="form-error"></span>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-control" data-validate="email" required placeholder="you@thirst.in" autocomplete="username">
+            <span class="form-error"></span>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="login-password" class="form-control" data-validate="password" required placeholder="Enter password" autocomplete="current-password">
+              <button type="button" class="password-toggle" data-target="login-password">Show</button>
             </div>
-            <div class="form-group">
-              <label for="customer-password">Password</label>
-              <div class="password-wrapper">
-                <input type="password" id="customer-password" class="form-control" data-validate="password" required placeholder="Enter password">
-                <button type="button" class="password-toggle" data-target="customer-password">Show</button>
-              </div>
-              <span class="form-error"></span>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="remember-me">
-              <label for="remember-me">Remember me</label>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
-          </form>
-          <p class="auth-footer">Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
-        </div>
-
-        <!-- Admin Login -->
-        <div class="tab-panel" id="tab-admin">
-          <form id="admin-login-form">
-            <div class="form-group">
-              <label for="admin-email">Email Address</label>
-              <input type="email" id="admin-email" class="form-control" data-validate="email" required placeholder="you@example.com">
-              <span class="form-error"></span>
-            </div>
-            <div class="form-group">
-              <label for="admin-password">Password</label>
-              <div class="password-wrapper">
-                <input type="password" id="admin-password" class="form-control" data-validate="password" required placeholder="Enter password">
-                <button type="button" class="password-toggle" data-target="admin-password">Show</button>
-              </div>
-              <span class="form-error"></span>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%">Staff / Admin Sign In</button>
-          </form>
-          <p class="auth-footer text-muted" style="margin-top:16px">Staff and admin sign in here. Demo admin: admin@thirst.in / Admin@123</p>
-        </div>
+            <span class="form-error"></span>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+        </form>
 
         <p style="text-align:center;margin-top:24px"><a href="index.html" style="color:var(--color-text-muted);font-size:14px">← Back to Home</a></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sign Up Modal -->
-  <div class="modal-overlay" id="signup-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Create Account</h2>
-        <button class="modal-close" aria-label="Close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="signup-form">
-          <div class="form-group">
-            <label for="signup-name">Full Name</label>
-            <input type="text" id="signup-name" class="form-control" required placeholder="Your full name">
-            <span class="form-error"></span>
-          </div>
-          <div class="form-group">
-            <label for="signup-email">Email Address</label>
-            <input type="email" id="signup-email" class="form-control" data-validate="email" required placeholder="you@example.com">
-            <span class="form-error"></span>
-          </div>
-          <div class="form-group">
-            <label for="signup-phone">Phone Number</label>
-            <input type="tel" id="signup-phone" class="form-control" data-validate="phone" required placeholder="9876543210">
-            <span class="form-error"></span>
-          </div>
-          <div class="form-group">
-            <label for="signup-password">Password</label>
-            <input type="password" id="signup-password" class="form-control" data-validate="password" required placeholder="Min 6 characters">
-            <span class="form-error"></span>
-          </div>
-          <div class="form-group">
-            <label for="signup-confirm">Confirm Password</label>
-            <input type="password" id="signup-confirm" class="form-control" data-validate="confirm-password" required placeholder="Re-enter password">
-            <span class="form-error"></span>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width:100%">Create Account</button>
-        </form>
       </div>
     </div>
   </div>
@@ -130,36 +57,23 @@
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       await App.init();
 
-      // Landing page for a given role
-      function landingFor(role, fallback) {
-        if (role === 'admin') return 'admin.html';
-        if (role === 'staff') return 'billing.html';
-        return fallback || 'menu.html';
+      // Where each role lands after signing in.
+      function landingFor(role) {
+        return role === 'admin' ? 'admin.html' : 'billing.html';
       }
 
-      // Redirect if already logged in
-      if (Auth.isLoggedIn()) {
+      // Already signed in? Go straight to the console.
+      if (Auth.isLoggedIn() && Auth.canStaff()) {
         window.location.href = landingFor(Auth.getUser()?.role);
         return;
       }
 
-      // Tabs
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-          btn.classList.add('active');
-          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-        });
-      });
-
-      // Password toggle
+      // Password show/hide
       document.querySelectorAll('.password-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
           const input = document.getElementById(btn.dataset.target);
@@ -169,88 +83,29 @@
         });
       });
 
-      // Sign up link
-      document.getElementById('signup-link').addEventListener('click', (e) => {
+      const form = document.getElementById('login-form');
+      App.setupFieldValidation(form);
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        App.openModal('signup-modal');
-      });
-
-      // Customer login
-      const customerForm = document.getElementById('customer-login-form');
-      App.setupFieldValidation(customerForm);
-      customerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('customer-email');
-        const password = document.getElementById('customer-password');
-        let valid = App.validateField(email) & App.validateField(password);
+        const email = document.getElementById('login-email');
+        const password = document.getElementById('login-password');
+        const valid = App.validateField(email) & App.validateField(password);
         if (!valid) return;
 
         try {
           const session = await Auth.login(email.value.trim(), password.value);
-          App.showToast('Welcome back, ' + session.user.name.split(' ')[0] + '!', 'success');
-          const params = new URLSearchParams(window.location.search);
-          // Staff/admin always land on their console; customers honour ?redirect
-          const role = session.user.role;
-          const redirect = (role === 'customer' && params.get('redirect')) || landingFor(role, 'menu.html');
-          setTimeout(() => window.location.href = redirect, 600);
-        } catch (err) {
-          customerForm.classList.add('error');
-          password.classList.add('error');
-          App.showToast(err.message, 'error');
-          customerForm.style.animation = 'shake 0.4s ease';
-          setTimeout(() => customerForm.style.animation = '', 400);
-        }
-      });
-
-      // Admin login
-      const adminForm = document.getElementById('admin-login-form');
-      App.setupFieldValidation(adminForm);
-      adminForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('admin-email');
-        const password = document.getElementById('admin-password');
-        let valid = App.validateField(email) & App.validateField(password);
-        if (!valid) return;
-
-        try {
-          const session = await Auth.login(email.value.trim(), password.value);
-          // This tab is for staff and admins. Customers must use the Customer tab.
+          // Only staff & admin accounts may sign in.
           if (!Auth.canStaff()) {
             await Auth.logout();
-            throw new Error('This is the staff / admin login. Please use the Customer Login tab.');
+            throw new Error('This account does not have access.');
           }
           App.showToast('Welcome, ' + session.user.name.split(' ')[0] + '!', 'success');
-          setTimeout(() => window.location.href = Auth.isAdmin() ? 'admin.html' : 'billing.html', 600);
+          setTimeout(() => window.location.href = landingFor(session.user.role), 600);
         } catch (err) {
           password.classList.add('error');
           App.showToast(err.message, 'error');
-          adminForm.style.animation = 'shake 0.4s ease';
-          setTimeout(() => adminForm.style.animation = '', 400);
-        }
-      });
-
-      // Sign up
-      const signupForm = document.getElementById('signup-form');
-      App.setupFieldValidation(signupForm);
-      signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fields = signupForm.querySelectorAll('.form-control[data-validate]');
-        let valid = true;
-        fields.forEach(f => { if (!App.validateField(f)) valid = false; });
-        if (!valid) return;
-
-        try {
-          const session = await Auth.register({
-            name: document.getElementById('signup-name').value.trim(),
-            email: document.getElementById('signup-email').value.trim(),
-            phone: document.getElementById('signup-phone').value.trim(),
-            password: document.getElementById('signup-password').value
-          });
-          App.closeModal('signup-modal');
-          App.showToast('Account created! Welcome, ' + session.user.name.split(' ')[0], 'success');
-          setTimeout(() => window.location.href = 'menu.html', 800);
-        } catch (err) {
-          App.showToast(err.message, 'error');
+          form.style.animation = 'shake 0.4s ease';
+          setTimeout(() => form.style.animation = '', 400);
         }
       });
     });

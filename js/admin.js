@@ -4,8 +4,6 @@
 
 const Admin = (() => {
   let menuItems = [];
-  let orders = [];
-  let reviews = [];
   let users = [];
   let userRoleFilter = '';
 
@@ -13,14 +11,10 @@ const Admin = (() => {
     if (!Auth.requireAdmin()) return;
 
     menuItems = await API.getAllMenuItems();
-    orders = await API.getOrders();
-    reviews = await API.getReviews();
 
     initNavigation();
     await renderDashboard();
     renderMenuTable();
-    renderOrders();
-    renderReviews();
     await renderCoupons();
     await renderUsers();
     await renderAudit();
@@ -46,7 +40,7 @@ const Admin = (() => {
       logoutBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         await Auth.logout();
-        window.location.href = 'login.html';
+        window.location.href = '/admin';
       });
     }
   }
@@ -60,17 +54,17 @@ const Admin = (() => {
   async function renderDashboard() {
     const stats = await API.getAdminStats();
 
-    document.getElementById('stat-orders').textContent = stats.todayOrders;
+    document.getElementById('stat-orders').textContent = stats.todayBills;
     document.getElementById('stat-revenue').textContent = App.formatCurrency(stats.todayRevenue);
     document.getElementById('stat-rating').textContent = stats.avgRating + '★';
     document.getElementById('stat-coupons').textContent = stats.activeCoupons;
 
     const chartBars = document.getElementById('chart-bars');
     if (chartBars) {
-      const maxCount = Math.max(...stats.weeklyOrders.map(d => d.count), 1);
-      chartBars.innerHTML = stats.weeklyOrders.map(d => `
+      const maxCount = Math.max(...stats.weeklyBills.map(d => d.count), 1);
+      chartBars.innerHTML = stats.weeklyBills.map(d => `
         <div class="chart-bar-group">
-          <div class="chart-bar" style="height: ${(d.count / maxCount) * 160}px" title="${d.count} orders"></div>
+          <div class="chart-bar" style="height: ${(d.count / maxCount) * 160}px" title="${d.count} bills"></div>
           <span class="label">${d.day}</span>
         </div>
       `).join('');
@@ -151,70 +145,6 @@ const Admin = (() => {
     }
   }
 
-  function renderOrders() {
-    const tbody = document.getElementById('orders-table-body');
-    if (!tbody) return;
-
-    if (!orders.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-text-muted)">No orders yet</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = orders.map(order => `
-      <tr>
-        <td><strong>${order.id}</strong></td>
-        <td>${order.customerName || 'Guest'}</td>
-        <td>${order.items?.length || 0} items</td>
-        <td>${App.formatCurrency(order.grandTotal)}</td>
-        <td>
-          <select class="status-select status-${order.status?.toLowerCase().replace(/\s/g, '')}" data-id="${order.id}">
-            <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
-            <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
-            <option value="Out for Delivery" ${order.status === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
-            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-          </select>
-        </td>
-        <td>${new Date(order.createdAt).toLocaleString('en-IN')}</td>
-      </tr>
-    `).join('');
-
-    tbody.querySelectorAll('.status-select').forEach(select => {
-      select.addEventListener('change', async () => {
-        try {
-          await API.updateOrderStatus(select.dataset.id, select.value);
-          App.showToast('Order status updated', 'success');
-        } catch (err) {
-          App.showToast(err.message, 'error');
-        }
-      });
-    });
-  }
-
-  function renderReviews() {
-    const container = document.getElementById('reviews-list');
-    if (!container) return;
-
-    if (!reviews.length) {
-      container.innerHTML = '<p style="text-align:center;padding:32px;color:var(--color-text-muted)">No reviews yet</p>';
-      return;
-    }
-
-    container.innerHTML = reviews.map(review => {
-      const dish = menuItems.find(m => m.id === review.dishId);
-      return `
-        <div class="review-item" style="padding:16px;background:var(--color-surface);border-radius:12px;margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <strong>${review.customerName || 'Customer'}</strong>
-            <span style="color:var(--color-accent)">${'★'.repeat(review.rating)}</span>
-          </div>
-          <p style="font-size:13px;color:var(--color-primary);margin-bottom:4px">${dish?.name || 'Unknown dish'}</p>
-          <p style="font-size:14px;color:var(--color-text-muted)">${review.comment || 'No comment'}</p>
-          <p style="font-size:12px;color:var(--color-text-light);margin-top:8px">${new Date(review.createdAt).toLocaleString('en-IN')}</p>
-        </div>
-      `;
-    }).join('');
-  }
-
   async function renderCoupons() {
     const container = document.getElementById('coupons-list');
     if (!container) return;
@@ -230,10 +160,10 @@ const Admin = (() => {
         <h3 style="font-size:18px;color:var(--color-primary);margin-bottom:8px">${c.code}</h3>
         <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:8px">${c.description}</p>
         <p style="font-size:13px">
-          ${c.type === 'percentage' ? c.value + '% off' : '\u20B9' + c.value + ' off'}
-          ${c.maxDiscount ? ' (max \u20B9' + c.maxDiscount + ')' : ''}
-          ${c.minOrder ? ' \u00B7 Min \u20B9' + c.minOrder : ''}
-          ${c.category ? ' \u00B7 ' + c.category + ' only' : ''}
+          ${c.type === 'percentage' ? c.value + '% off' : '₹' + c.value + ' off'}
+          ${c.maxDiscount ? ' (max ₹' + c.maxDiscount + ')' : ''}
+          ${c.minOrder ? ' · Min ₹' + c.minOrder : ''}
+          ${c.category ? ' · ' + c.category + ' only' : ''}
         </p>
         <span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(46,125,50,0.1);color:var(--color-success);border-radius:20px;font-size:12px;font-weight:600">Active</span>
       </div>

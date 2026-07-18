@@ -1,6 +1,9 @@
 /**
  * server.js — Thirst. REST API + static frontend host.
- * API under /api/v1/*, static site served from the project root.
+ * API under /api/v1/*, static site served from the project root (local dev).
+ *
+ * Roles: admin | staff. There is no customer role — the public site is a
+ * browse-only showcase and all sales run through the staff/admin POS billing.
  */
 const path = require('path');
 const express = require('express');
@@ -33,14 +36,6 @@ const mapCoupon = r => r && ({
   code: r.code, type: r.type, value: r.value, maxDiscount: r.max_discount,
   minOrder: r.min_order, category: r.category, description: r.description, active: !!r.active
 });
-const mapOrder = r => r && ({
-  id: r.id, userId: r.user_id, customerName: r.customer_name,
-  items: JSON.parse(r.items || '[]'), subtotal: r.subtotal, deliveryFee: r.delivery_fee,
-  platformFee: r.platform_fee, gst: r.gst, couponDiscount: r.coupon_discount,
-  pointsRedeemed: r.points_redeemed, pointsEarned: r.points_earned, grandTotal: r.grand_total,
-  deliveryOption: r.delivery_option, address: r.address ? JSON.parse(r.address) : null,
-  payment: r.payment ? JSON.parse(r.payment) : null, status: r.status, createdAt: r.created_at
-});
 const mapReview = r => r && ({
   id: r.id, dishId: r.dish_id, rating: r.rating, comment: r.comment,
   customerName: r.customer_name, orderId: r.order_id, createdAt: r.created_at
@@ -55,7 +50,7 @@ const mapBill = r => r && ({
 const wrap = fn => (req, res) => { try { fn(req, res); } catch (err) { console.error(err); res.status(500).json({ error: err.message || 'Server error' }); } };
 
 // =====================================================================
-//  AUTH
+//  AUTH  (staff & admin only — no public self-registration)
 // =====================================================================
 app.post('/api/v1/auth/login', wrap((req, res) => {
   const { email, password } = req.body || {};
@@ -67,20 +62,6 @@ app.post('/api/v1/auth/login', wrap((req, res) => {
   const token = issueToken(user);
   audit.log({ user, headers: req.headers, socket: req.socket }, 'auth.login', { entityType: 'user', entityId: user.id });
   res.json({ token, user: sanitizeUser(user) });
-}));
-
-app.post('/api/v1/auth/register', wrap((req, res) => {
-  const { name, email, phone, password } = req.body || {};
-  if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
-  const exists = db.prepare('SELECT 1 FROM users WHERE lower(email) = lower(?)').get(String(email).trim());
-  if (exists) return res.status(409).json({ error: 'An account with this email already exists' });
-  const id = 'cust-' + Date.now();
-  db.prepare(`INSERT INTO users (id, name, email, password_hash, phone, role, reward_points, active, created_by)
-              VALUES (?, ?, ?, ?, ?, 'customer', 0, 1, 'self')`)
-    .run(id, name.trim(), email.trim(), hashPassword(password), (phone || '').trim());
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
-  audit.log({ user, headers: req.headers, socket: req.socket }, 'auth.register', { entityType: 'user', entityId: id });
-  res.status(201).json({ token: issueToken(user), user: sanitizeUser(user) });
 }));
 
 app.post('/api/v1/auth/logout', authenticate, wrap((req, res) => {
@@ -148,41 +129,12 @@ app.delete('/api/v1/menu/:id', authenticate, authorize(), wrap((req, res) => {
 }));
 
 // =====================================================================
-//  COUPONS
+//  COUPONS  (public list + admin management; used as a manager reference)
 // =====================================================================
 app.get('/api/v1/coupons', wrap((req, res) => {
   res.json(db.prepare('SELECT * FROM coupons WHERE active = 1').all().map(mapCoupon));
 }));
 
-app.post('/api/v1/coupons/validate', wrap((req, res) => {
-  const { code, cartItems = [], subtotal = 0 } = req.body || {};
-  const row = db.prepare('SELECT * FROM coupons WHERE upper(code) = upper(?) AND active = 1').get(String(code || '').trim());
-  if (!row) return res.status(404).json({ error: 'Invalid coupon code' });
-  const coupon = mapCoupon(row);
-  if (coupon.minOrder && subtotal < coupon.minOrder) {
-    return res.status(400).json({ error: `Minimum order of ₹${coupon.minOrder} required for this coupon` });
-  }
-  let discount = 0;
-  if (coupon.type === 'percentage') {
-    let applicable = subtotal;
-    if (coupon.category) {
-      const ids = cartItems.map(ci => ci.id);
-      const menu = ids.length ? db.prepare(`SELECT id, price, category FROM menu_items WHERE id IN (${ids.map(() => '?').join(',')})`).all(...ids) : [];
-      applicable = cartItems.reduce((sum, ci) => {
-        const m = menu.find(x => x.id === ci.id);
-        return m && m.category === coupon.category ? sum + m.price * ci.quantity : sum;
-      }, 0);
-      if (applicable === 0) return res.status(400).json({ error: 'This coupon is only valid for ' + coupon.category });
-    }
-    discount = (applicable * coupon.value) / 100;
-    if (coupon.maxDiscount) discount = Math.min(discount, coupon.maxDiscount);
-  } else if (coupon.type === 'flat') {
-    discount = coupon.value;
-  }
-  res.json({ coupon, discount: Math.round(discount * 100) / 100 });
-}));
-
-// admin coupon management
 app.post('/api/v1/coupons', authenticate, authorize(), wrap((req, res) => {
   const b = req.body || {};
   if (!b.code || !b.type || b.value == null) return res.status(400).json({ error: 'code, type and value are required' });
@@ -195,64 +147,7 @@ app.post('/api/v1/coupons', authenticate, authorize(), wrap((req, res) => {
 }));
 
 // =====================================================================
-//  PAYMENTS (simulated gateway — mirrors the original demo behaviour)
-// =====================================================================
-const FAIL_REASONS = [
-  'Network connection lost during transaction', 'Payment gateway timeout — please retry',
-  'Transaction cancelled by payment provider', 'Insufficient funds or card declined', 'UPI ID verification failed'
-];
-app.post('/api/v1/payments/process', wrap((req, res) => {
-  const { method, amount, forceFail = false } = req.body || {};
-  const canRandomFail = method !== 'cod';
-  if (forceFail || (canRandomFail && Math.random() < 0.3)) {
-    return res.status(402).json({ error: FAIL_REASONS[Math.floor(Math.random() * FAIL_REASONS.length)] });
-  }
-  res.json({ transactionId: 'TXN' + Date.now(), status: 'success', method, amount });
-}));
-
-// =====================================================================
-//  ORDERS
-// =====================================================================
-app.post('/api/v1/orders', authenticate, wrap((req, res) => {
-  const b = req.body || {};
-  const id = 'ORD-' + Date.now().toString(36).toUpperCase();
-  const pointsEarned = Math.floor((Number(b.grandTotal) || 0) / 10);
-  const tx = db.transaction(() => {
-    db.prepare(`INSERT INTO orders (id, user_id, customer_name, items, subtotal, delivery_fee, platform_fee, gst,
-      coupon_discount, points_redeemed, points_earned, grand_total, delivery_option, address, payment, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Placed')`)
-      .run(id, req.user.id, b.customerName || req.user.name, JSON.stringify(b.items || []),
-           b.subtotal || 0, b.deliveryFee || 0, b.platformFee || 0, b.gst || 0, b.couponDiscount || 0,
-           b.pointsRedeemed || 0, pointsEarned, b.grandTotal || 0, b.deliveryOption || 'standard',
-           b.address ? JSON.stringify(b.address) : null, b.payment ? JSON.stringify(b.payment) : null);
-    const newPoints = (req.user.reward_points || 0) - (b.pointsRedeemed || 0) + pointsEarned;
-    db.prepare('UPDATE users SET reward_points = ? WHERE id = ?').run(Math.max(0, newPoints), req.user.id);
-  });
-  tx();
-  audit.log(req, 'order.place', { entityType: 'order', entityId: id, details: { total: b.grandTotal } });
-  res.status(201).json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(id)));
-}));
-
-// staff/admin: all orders
-app.get('/api/v1/orders', authenticate, authorize('staff'), wrap((req, res) => {
-  res.json(db.prepare('SELECT * FROM orders ORDER BY created_at DESC').all().map(mapOrder));
-}));
-
-// customer: only their own orders
-app.get('/api/v1/orders/mine', authenticate, wrap((req, res) => {
-  res.json(db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id).map(mapOrder));
-}));
-
-app.put('/api/v1/orders/:id/status', authenticate, authorize('staff'), wrap((req, res) => {
-  const cur = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
-  if (!cur) return res.status(404).json({ error: 'Order not found' });
-  db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(req.body.status, req.params.id);
-  audit.log(req, 'order.status', { entityType: 'order', entityId: req.params.id, details: { from: cur.status, to: req.body.status } });
-  res.json(mapOrder(db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id)));
-}));
-
-// =====================================================================
-//  REVIEWS
+//  REVIEWS  (read-only — shown on the public menu; no customer submission)
 // =====================================================================
 app.get('/api/v1/reviews', wrap((req, res) => {
   const dishId = req.query.dishId ? Number(req.query.dishId) : null;
@@ -262,28 +157,8 @@ app.get('/api/v1/reviews', wrap((req, res) => {
   res.json(rows.map(mapReview));
 }));
 
-app.post('/api/v1/reviews', authenticate, wrap((req, res) => {
-  const b = req.body || {};
-  const id = 'rev-' + Date.now();
-  const tx = db.transaction(() => {
-    db.prepare(`INSERT INTO reviews (id, dish_id, rating, comment, customer_name, order_id)
-                VALUES (?, ?, ?, ?, ?, ?)`)
-      .run(id, b.dishId, b.rating, b.comment || '', b.customerName || req.user.name, b.orderId || null);
-    const item = db.prepare('SELECT * FROM menu_items WHERE id = ?').get(b.dishId);
-    if (item) {
-      const total = item.rating * item.review_count + Number(b.rating);
-      const count = item.review_count + 1;
-      db.prepare('UPDATE menu_items SET rating = ?, review_count = ? WHERE id = ?')
-        .run(Math.round((total / count) * 10) / 10, count, b.dishId);
-    }
-  });
-  tx();
-  audit.log(req, 'review.create', { entityType: 'menu', entityId: b.dishId, details: { rating: b.rating } });
-  res.status(201).json(mapReview(db.prepare('SELECT * FROM reviews WHERE id = ?').get(id)));
-}));
-
 // =====================================================================
-//  USERS (admin only — staff & customer management)
+//  USERS (admin only — staff & admin management)
 // =====================================================================
 app.get('/api/v1/users', authenticate, authorize(), wrap((req, res) => {
   const role = req.query.role;
@@ -296,7 +171,7 @@ app.get('/api/v1/users', authenticate, authorize(), wrap((req, res) => {
 app.post('/api/v1/users', authenticate, authorize(), wrap((req, res) => {
   const b = req.body || {};
   if (!b.name || !b.email || !b.password || !b.role) return res.status(400).json({ error: 'name, email, password and role are required' });
-  if (!['admin', 'staff', 'customer'].includes(b.role)) return res.status(400).json({ error: 'Invalid role' });
+  if (!['admin', 'staff'].includes(b.role)) return res.status(400).json({ error: 'Invalid role' });
   const exists = db.prepare('SELECT 1 FROM users WHERE lower(email) = lower(?)').get(b.email.trim());
   if (exists) return res.status(409).json({ error: 'An account with this email already exists' });
   const id = b.role + '-' + Date.now();
@@ -311,6 +186,7 @@ app.put('/api/v1/users/:id', authenticate, authorize(), wrap((req, res) => {
   const cur = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!cur) return res.status(404).json({ error: 'User not found' });
   const b = req.body || {};
+  if (b.role && !['admin', 'staff'].includes(b.role)) return res.status(400).json({ error: 'Invalid role' });
   // Guard: don't let the last active admin be demoted or disabled.
   if (cur.role === 'admin' && (b.role && b.role !== 'admin' || b.active === false)) {
     const admins = db.prepare("SELECT COUNT(*) c FROM users WHERE role='admin' AND active=1").get().c;
@@ -400,42 +276,43 @@ app.get('/api/v1/audit', authenticate, authorize(), wrap((req, res) => {
 function tryParse(s) { try { return JSON.parse(s); } catch { return s; } }
 
 // =====================================================================
-//  ADMIN STATS
+//  ADMIN STATS  (dashboard — driven by POS bills)
 // =====================================================================
 app.get('/api/v1/admin/stats', authenticate, authorize('staff'), wrap((req, res) => {
-  const orders = db.prepare('SELECT grand_total, created_at, status FROM orders').all();
   const bills = db.prepare('SELECT total, created_at FROM bills').all();
   const menu = db.prepare('SELECT rating FROM menu_items').all();
   const coupons = db.prepare('SELECT active FROM coupons').all();
-  const reviews = db.prepare('SELECT COUNT(*) c FROM reviews').get().c;
   const staffCount = db.prepare("SELECT COUNT(*) c FROM users WHERE role='staff' AND active=1").get().c;
 
   const todayStr = new Date().toDateString();
   const isToday = d => new Date(d).toDateString() === todayStr;
-  const todayOrders = orders.filter(o => isToday(o.created_at));
   const todayBills = bills.filter(bl => isToday(bl.created_at));
-  const todayRevenue = todayOrders.reduce((s, o) => s + o.grand_total, 0) + todayBills.reduce((s, bl) => s + bl.total, 0);
+  const todayRevenue = todayBills.reduce((s, bl) => s + bl.total, 0);
   const avgRating = menu.length ? Math.round(menu.reduce((s, m) => s + m.rating, 0) / menu.length * 10) / 10 : 0;
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const weeklyOrders = weekDays.map((day, i) => ({
-    day, count: orders.filter(o => new Date(o.created_at).getDay() === i).length
+  const weeklyBills = weekDays.map((day, i) => ({
+    day, count: bills.filter(bl => new Date(bl.created_at).getDay() === i).length
   }));
 
   res.json({
-    todayOrders: todayOrders.length,
     todayBills: todayBills.length,
     todayRevenue,
     avgRating,
     activeCoupons: coupons.filter(c => c.active).length,
-    totalReviews: reviews,
     staffCount,
-    weeklyOrders
+    weeklyBills
   });
 }));
 
 // ---------- Health ----------
 app.get('/api/v1/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+
+// ---------- Staff/Admin entry point ----------
+// /admin serves the login page; login.html bounces an already-signed-in
+// staff/admin on to their console. (In production the Vercel frontend maps
+// /admin → /login.html via vercel.json; this covers local/Render hosting.)
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '..', 'login.html')));
 
 // ---------- Static frontend (served from project root, local dev only) ----------
 // On Render the frontend is hosted separately on Vercel; we still serve it locally.

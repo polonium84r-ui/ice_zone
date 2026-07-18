@@ -26,37 +26,11 @@
     {
       "name": "Browse Menu",
       "short_name": "Menu",
-      "description": "View our full menu and place an order",
+      "description": "View our full menu",
       "url": "/menu.html",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
-        }
-      ]
-    },
-    {
-      "name": "My Cart",
-      "short_name": "Cart",
-      "description": "View your shopping cart",
-      "url": "/cart.html",
-      "icons": [
-        {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
-        }
-      ]
-    },
-    {
-      "name": "My Orders",
-      "short_name": "Orders",
-      "description": "Track your order history",
-      "url": "/orders.html",
-      "icons": [
-        {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>",
           "sizes": "96x96",
           "type": "image/svg+xml"
         }

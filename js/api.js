@@ -1,8 +1,8 @@
 /**
  * api.js — Data access layer for the Thirst. frontend.
  * Talks to the Node/Express + SQLite backend over REST (JWT auth).
- * Cart / checkout draft / addresses stay in localStorage as per-browser
- * working state; everything else is persisted server-side.
+ * Only the staff/admin session token is kept in localStorage; everything
+ * else is persisted server-side. There is no customer role.
  */
 
 const API = (() => {
@@ -16,15 +16,12 @@ const API = (() => {
   const sameOrigin = location.origin === BACKEND;
   const BASE = (sameOrigin ? '' : BACKEND) + '/api/v1';
 
-  // Client-only working state still lives in localStorage.
+  // Only the staff/admin session lives client-side.
   const STORAGE_KEYS = {
-    SESSION: 'ps_session',
-    CART: 'ps_cart',
-    CHECKOUT: 'ps_checkout',
-    ADDRESSES: 'ps_addresses'
+    SESSION: 'ps_session'
   };
 
-  /* ---------- storage helpers (client-only state) ---------- */
+  /* ---------- storage helpers (session only) ---------- */
   function getStorage(key, fallback) {
     try {
       const data = localStorage.getItem(key);
@@ -63,11 +60,6 @@ const API = (() => {
     return data;
   }
 
-  /* ---------- init (compat shim) ---------- */
-  function initStorage() {
-    if (!localStorage.getItem(STORAGE_KEYS.CART)) setStorage(STORAGE_KEYS.CART, []);
-  }
-
   /* ---------- Menu ---------- */
   async function getMenu() { return request('/menu'); }
   async function getAllMenuItems() { return request('/menu/all', { auth: true }); }
@@ -76,15 +68,9 @@ const API = (() => {
   async function updateMenuItem(id, updates) { return request('/menu/' + id, { method: 'PUT', body: updates, auth: true }); }
   async function deleteMenuItem(id) { return request('/menu/' + id, { method: 'DELETE', auth: true }); }
 
-  /* ---------- Auth ---------- */
+  /* ---------- Auth (staff & admin) ---------- */
   async function login(email, password) {
     const data = await request('/auth/login', { method: 'POST', body: { email, password } });
-    const session = { token: data.token, user: data.user, createdAt: new Date().toISOString() };
-    setStorage(STORAGE_KEYS.SESSION, session);
-    return session;
-  }
-  async function register(userData) {
-    const data = await request('/auth/register', { method: 'POST', body: userData });
     const session = { token: data.token, user: data.user, createdAt: new Date().toISOString() };
     setStorage(STORAGE_KEYS.SESSION, session);
     return session;
@@ -100,7 +86,7 @@ const API = (() => {
     try {
       const data = await request('/auth/session', { auth: true });
       const session = { token: stored.token, user: data.user, createdAt: stored.createdAt };
-      setStorage(STORAGE_KEYS.SESSION, session);   // refresh cached user (points, role, etc.)
+      setStorage(STORAGE_KEYS.SESSION, session);   // refresh cached user (role, etc.)
       return session;
     } catch {
       localStorage.removeItem(STORAGE_KEYS.SESSION); // token invalid/expired
@@ -108,54 +94,10 @@ const API = (() => {
     }
   }
 
-  /* ---------- Coupons ---------- */
+  /* ---------- Coupons (public list + admin create) ---------- */
   async function getCoupons() { return request('/coupons'); }
-  async function validateCoupon(code, cartItems, subtotal) {
-    return request('/coupons/validate', { method: 'POST', body: { code, cartItems, subtotal } });
-  }
 
-  /* ---------- Cart / checkout draft / addresses (client-local) ---------- */
-  async function getCart() { return getStorage(STORAGE_KEYS.CART, []); }
-  async function saveCart(cart) { setStorage(STORAGE_KEYS.CART, cart); return cart; }
-  async function getCheckoutState() {
-    return getStorage(STORAGE_KEYS.CHECKOUT, {
-      coupon: null, couponDiscount: 0, redeemPoints: false, pointsRedeemed: 0,
-      deliveryOption: 'standard', address: null
-    });
-  }
-  async function saveCheckoutState(state) { setStorage(STORAGE_KEYS.CHECKOUT, state); return state; }
-  async function getAddresses() { return getStorage(STORAGE_KEYS.ADDRESSES, []); }
-  async function saveAddress(address) {
-    const addresses = getStorage(STORAGE_KEYS.ADDRESSES, []);
-    const newAddr = { ...address, id: 'addr-' + Date.now() };
-    addresses.push(newAddr);
-    setStorage(STORAGE_KEYS.ADDRESSES, addresses);
-    return newAddr;
-  }
-
-  /* ---------- Payments ---------- */
-  async function processPayment(paymentData, forceFail = false) {
-    return request('/payments/process', {
-      method: 'POST',
-      body: { method: paymentData.method, amount: paymentData.amount, forceFail }
-    });
-  }
-
-  /* ---------- Orders ---------- */
-  async function placeOrder(orderData) { return request('/orders', { method: 'POST', body: orderData, auth: true }); }
-  async function getOrders() {
-    // staff/admin see all orders; customers see only their own
-    const role = window.Auth && Auth.getUser && Auth.getUser() ? Auth.getUser().role : 'customer';
-    const path = (role === 'admin' || role === 'staff') ? '/orders' : '/orders/mine';
-    return request(path, { auth: true });
-  }
-  async function getMyOrders() { return request('/orders/mine', { auth: true }); }
-  async function updateOrderStatus(orderId, status) {
-    return request('/orders/' + orderId + '/status', { method: 'PUT', body: { status }, auth: true });
-  }
-
-  /* ---------- Reviews ---------- */
-  async function submitReview(review) { return request('/reviews', { method: 'POST', body: review, auth: true }); }
+  /* ---------- Reviews (read-only, shown on the public menu) ---------- */
   async function getReviews(dishId) { return request('/reviews' + (dishId ? '?dishId=' + dishId : '')); }
 
   /* ---------- Users (admin) ---------- */
@@ -182,14 +124,11 @@ const API = (() => {
   async function getAdminStats() { return request('/admin/stats', { auth: true }); }
 
   return {
-    STORAGE_KEYS, initStorage,
+    STORAGE_KEYS,
     getMenu, getAllMenuItems, getMenuItem, addMenuItem, updateMenuItem, deleteMenuItem,
-    login, register, logout, getSession,
-    getCoupons, validateCoupon,
-    getCart, saveCart, getCheckoutState, saveCheckoutState, getAddresses, saveAddress,
-    processPayment,
-    placeOrder, getOrders, getMyOrders, updateOrderStatus,
-    submitReview, getReviews,
+    login, logout, getSession,
+    getCoupons,
+    getReviews,
     getUsers, createUser, updateUser, disableUser,
     createBill, getBills, getBill,
     getAuditLogs,

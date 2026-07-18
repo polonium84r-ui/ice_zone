@@ -3,20 +3,16 @@
  * Provides offline support and caching strategies
  */
 
-const CACHE_NAME = 'thirst-v2.0.0';
+const CACHE_NAME = 'thirst-v3.0.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/menu.html',
-  '/cart.html',
-  '/login.html',
   '/about.html',
-  '/orders.html',
   '/css/styles.css',
   '/js/data.js',
   '/js/api.js',
   '/js/auth.js',
-  '/js/cart.js',
   '/js/app.js',
   '/manifest.json',
   '/assets/thirst-logo.png'

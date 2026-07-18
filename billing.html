@@ -229,7 +229,6 @@
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
   <script>
     const STORE = {
@@ -533,7 +532,7 @@
 
       document.getElementById('logout-btn').addEventListener('click', async () => {
         await Auth.logout();
-        window.location.href = 'login.html';
+        window.location.href = '/admin';
       });
 
       try {

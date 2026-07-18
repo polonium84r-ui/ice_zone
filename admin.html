@@ -21,12 +21,10 @@
       <nav class="admin-nav">
         <a href="#" data-section="dashboard" class="active">📊 Dashboard</a>
         <a href="#" data-section="menu">🍽️ Menu Management</a>
-        <a href="#" data-section="orders">📦 Orders</a>
         <a href="#" data-section="users">👥 User Management</a>
         <a href="billing.html">🧾 Billing (POS)</a>
         <a href="#" data-section="audit">📜 Audit Log</a>
         <a href="#" data-section="coupons">🏷️ Coupons</a>
-        <a href="#" data-section="reviews">⭐ Reviews</a>
         <button class="admin-logout">🚪 Logout</button>
       </nav>
     </aside>
@@ -41,7 +39,7 @@
         </div>
         <div class="stat-cards">
           <div class="stat-card">
-            <div class="label">Today's Orders</div>
+            <div class="label">Today's Bills</div>
             <div class="value" id="stat-orders">0</div>
           </div>
           <div class="stat-card">
@@ -87,42 +85,12 @@
         </div>
       </section>
 
-      <!-- Orders -->
-      <section class="admin-section" id="section-orders">
-        <div class="admin-header">
-          <h1>Orders</h1>
-        </div>
-        <div class="admin-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="orders-table-body"></tbody>
-          </table>
-        </div>
-      </section>
-
       <!-- Coupons -->
       <section class="admin-section" id="section-coupons">
         <div class="admin-header">
           <h1>Active Coupons</h1>
         </div>
         <div id="coupons-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
-      </section>
-
-      <!-- Reviews -->
-      <section class="admin-section" id="section-reviews">
-        <div class="admin-header">
-          <h1>Customer Reviews</h1>
-        </div>
-        <div id="reviews-list"></div>
       </section>
 
       <!-- User Management -->
@@ -135,7 +103,6 @@
           <button class="category-chip active" data-role="">All</button>
           <button class="category-chip" data-role="admin">Admins</button>
           <button class="category-chip" data-role="staff">Staff</button>
-          <button class="category-chip" data-role="customer">Customers</button>
         </div>
         <div class="admin-table">
           <table>
@@ -164,10 +131,8 @@
             <option value="auth">Authentication</option>
             <option value="user">User management</option>
             <option value="menu">Menu changes</option>
-            <option value="order">Orders</option>
             <option value="bill">Billing</option>
             <option value="coupon">Coupons</option>
-            <option value="review">Reviews</option>
           </select>
         </div>
         <div class="admin-table">
@@ -217,7 +182,6 @@
               <label>Role</label>
               <select name="role" class="form-control" required>
                 <option value="staff">Staff</option>
-                <option value="customer">Customer</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
@@ -255,7 +219,6 @@
               <label>Role</label>
               <select name="role" class="form-control">
                 <option value="staff">Staff</option>
-                <option value="customer">Customer</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
@@ -329,7 +292,6 @@
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
   <script src="js/admin.js"></script>
   <script>

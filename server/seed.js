@@ -41,8 +41,7 @@ const COUPONS = [
 
 const USERS = [
   { id: 'admin-001', name: 'Admin User', email: 'admin@thirst.in', password: 'Admin@123', phone: '9999999999', role: 'admin', reward_points: 0 },
-  { id: 'staff-001', name: 'Priya (Counter)', email: 'staff@thirst.in', password: 'Staff@123', phone: '9888800000', role: 'staff', reward_points: 0 },
-  { id: 'cust-001', name: 'Rahul Sharma', email: 'customer@test.com', password: 'Test@123', phone: '9876543210', role: 'customer', reward_points: 120 }
+  { id: 'staff-001', name: 'Priya (Counter)', email: 'staff@thirst.in', password: 'Staff@123', phone: '9888800000', role: 'staff', reward_points: 0 }
 ];
 
 const insertMenu = db.prepare(`INSERT INTO menu_items (name, category, description, price, image, rating, review_count, is_veg, tags, available)
@@ -73,5 +72,10 @@ for (const u of USERS) {
     console.log(`Seeded ${u.role} user: ${u.email}`);
   }
 }
+
+// The customer role has been removed permanently. Purge any legacy customer
+// accounts so they can no longer sign in (idempotent — safe to re-run).
+const purged = db.prepare("DELETE FROM users WHERE role = 'customer'").run().changes;
+if (purged) console.log(`Removed ${purged} legacy customer account(s).`);
 
 console.log('Seed complete.');

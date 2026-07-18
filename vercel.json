@@ -2,11 +2,8 @@
   "version": 2,
   "rewrites": [
     { "source": "/menu", "destination": "/menu.html" },
-    { "source": "/cart", "destination": "/cart.html" },
-    { "source": "/orders", "destination": "/orders.html" },
-    { "source": "/login", "destination": "/login.html" },
     { "source": "/about", "destination": "/about.html" },
-    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin", "destination": "/login.html" },
     { "source": "/billing", "destination": "/billing.html" }
   ]
 }

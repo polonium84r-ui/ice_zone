@@ -1,5 +1,5 @@
 /**
- * auth.js — Authentication & session management
+ * auth.js — Authentication & session management (staff & admin only).
  */
 
 const Auth = (() => {
@@ -26,10 +26,6 @@ const Auth = (() => {
     return currentSession?.user?.role === 'admin';
   }
 
-  function isCustomer() {
-    return currentSession?.user?.role === 'customer';
-  }
-
   function isStaff() {
     return currentSession?.user?.role === 'staff';
   }
@@ -46,26 +42,12 @@ const Auth = (() => {
     return session;
   }
 
-  async function register(userData) {
-    const session = await API.register(userData);
-    currentSession = session;
-    return session;
-  }
-
   async function logout() {
     await API.logout();
     currentSession = null;
   }
 
-  function requireAuth(redirectUrl = 'login.html') {
-    if (!isLoggedIn()) {
-      window.location.href = redirectUrl + '?redirect=' + encodeURIComponent(window.location.pathname);
-      return false;
-    }
-    return true;
-  }
-
-  function requireAdmin(redirectUrl = 'login.html') {
+  function requireAdmin(redirectUrl = '/admin') {
     if (!isAdmin()) {
       window.location.href = redirectUrl;
       return false;
@@ -73,30 +55,13 @@ const Auth = (() => {
     return true;
   }
 
-  function requireCustomer(redirectUrl = 'login.html') {
-    if (!isCustomer()) {
-      window.location.href = redirectUrl + '?redirect=' + encodeURIComponent(window.location.pathname);
-      return false;
-    }
-    return true;
-  }
-
-  // Allows staff OR admin (POS billing). Redirects everyone else to login.
-  function requireStaff(redirectUrl = 'login.html') {
+  // Allows staff OR admin (POS billing). Redirects everyone else to the login.
+  function requireStaff(redirectUrl = '/admin') {
     if (!canStaff()) {
-      window.location.href = redirectUrl + '?redirect=' + encodeURIComponent(window.location.pathname);
+      window.location.href = redirectUrl;
       return false;
     }
     return true;
-  }
-
-  function getRewardPoints() {
-    return currentSession?.user?.rewardPoints || 0;
-  }
-
-  async function refreshSession() {
-    currentSession = await API.getSession();
-    return currentSession;
   }
 
   return {
@@ -105,17 +70,11 @@ const Auth = (() => {
     getUser,
     isLoggedIn,
     isAdmin,
-    isCustomer,
     isStaff,
     canStaff,
     login,
-    register,
     logout,
-    requireAuth,
     requireAdmin,
-    requireCustomer,
-    requireStaff,
-    getRewardPoints,
-    refreshSession
+    requireStaff
   };
 })();

@@ -21,7 +21,7 @@ db.exec(`
     email         TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     phone         TEXT,
-    role          TEXT NOT NULL DEFAULT 'customer',   -- admin | staff | customer
+    role          TEXT NOT NULL DEFAULT 'staff',       -- admin | staff
     reward_points INTEGER NOT NULL DEFAULT 0,
     active        INTEGER NOT NULL DEFAULT 1,
     created_by    TEXT,
