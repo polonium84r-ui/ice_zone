@@ -10,7 +10,7 @@ const API = (() => {
   //  1. window.THIRST_API  — injected at build / deploy time
   //  2. Same-origin        — when the Express server is also serving the frontend (local dev)
   //  3. Render production  — the deployed API service URL
-  const RENDER_API = 'https://ice-zone-api.onrender.com';
+  const RENDER_API = 'https://ice-zone.onrender.com';
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const BACKEND = (window.THIRST_API || (isLocal ? 'http://localhost:4000' : RENDER_API)).replace(/\/$/, '');
   const sameOrigin = location.origin === BACKEND;
