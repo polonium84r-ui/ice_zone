@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ice-zone-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm run seed && npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: THIRST_JWT_SECRET
+        generateValue: true
+    disk:
+      name: thirst-db
+      mountPath: /data
+      sizeGB: 1

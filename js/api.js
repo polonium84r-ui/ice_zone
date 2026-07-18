@@ -6,10 +6,13 @@
  */
 
 const API = (() => {
-  // Backend origin. When the page is served by the Node server itself we use a
-  // same-origin relative path; otherwise (file://, or a separate static server)
-  // we target the backend directly. Override with window.THIRST_API if needed.
-  const BACKEND = (window.THIRST_API || 'http://localhost:4000').replace(/\/$/, '');
+  // Backend origin resolution order:
+  //  1. window.THIRST_API  — injected at build / deploy time
+  //  2. Same-origin        — when the Express server is also serving the frontend (local dev)
+  //  3. Render production  — the deployed API service URL
+  const RENDER_API = 'https://ice-zone-api.onrender.com';
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const BACKEND = (window.THIRST_API || (isLocal ? 'http://localhost:4000' : RENDER_API)).replace(/\/$/, '');
   const sameOrigin = location.origin === BACKEND;
   const BASE = (sameOrigin ? '' : BACKEND) + '/api/v1';
 

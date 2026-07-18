@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "name": "ice-zone",
+  "builds": [
+    {
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/js/(.*)", "dest": "/js/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/high_quality_frames/(.*)", "dest": "/high_quality_frames/$1" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/sw.js", "dest": "/sw.js" },
+    { "src": "/menu", "dest": "/menu.html" },
+    { "src": "/cart", "dest": "/cart.html" },
+    { "src": "/orders", "dest": "/orders.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/about", "dest": "/about.html" },
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/billing", "dest": "/billing.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

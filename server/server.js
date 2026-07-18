@@ -12,7 +12,15 @@ const { hashPassword, verifyPassword, sanitizeUser, issueToken, authenticate, au
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:4000',
+    'http://localhost:3000',
+    /\.vercel\.app$/,          // any Vercel preview/prod URL
+    /\.onrender\.com$/         // Render URLs
+  ],
+  credentials: true
+}));
 app.use(express.json({ limit: '1mb' }));
 
 // ---------- Row → API mappers ----------
@@ -429,8 +437,14 @@ app.get('/api/v1/admin/stats', authenticate, authorize('staff'), wrap((req, res)
 // ---------- Health ----------
 app.get('/api/v1/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-// ---------- Static frontend (served from project root) ----------
-app.use(express.static(path.join(__dirname, '..')));
+// ---------- Static frontend (served from project root, local dev only) ----------
+// On Render the frontend is hosted separately on Vercel; we still serve it locally.
+if (process.env.NODE_ENV !== 'production') {
+  app.use(express.static(path.join(__dirname, '..')));
+} else {
+  // In production only serve /api/* — the frontend lives on Vercel
+  app.get('/', (req, res) => res.json({ ok: true, service: 'Thirst. API', env: 'production' }));
+}
 
 // API 404 (after routes, before static fallthrough would send index for unknown /api)
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
