@@ -80,11 +80,20 @@ const API = (() => {
     localStorage.removeItem(STORAGE_KEYS.SESSION);
     return true;
   }
+  function isTokenExpired(token) {
+    try {
+      const { exp } = JSON.parse(atob(token.split('.')[1]));
+      return !exp || exp * 1000 <= Date.now();
+    } catch { return true; }
+  }
   async function getSession() {
     const stored = getStorage(STORAGE_KEYS.SESSION, null);
     if (!stored || !stored.token) return null;
+    // Drop a locally-expired token without hitting the server.
+    if (isTokenExpired(stored.token)) { localStorage.removeItem(STORAGE_KEYS.SESSION); return null; }
     try {
       const data = await request('/auth/session', { auth: true });
+      if (!data || !data.user) { localStorage.removeItem(STORAGE_KEYS.SESSION); return null; }
       const session = { token: stored.token, user: data.user, createdAt: stored.createdAt };
       setStorage(STORAGE_KEYS.SESSION, session);   // refresh cached user (role, etc.)
       return session;

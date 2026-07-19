@@ -233,7 +233,7 @@
   <script>
     const STORE = {
       name: 'Thirst.',
-      tagline: 'Sweet Stories, Frozen',
+      tagline: 'One for Living',
       address: 'No. 01, Siva Vishnu Kovil Street, Kakkalur, Thiruvallur – 602 001',
       phone: '+91 85250 03546',
       fssai: '22425478001152',
@@ -245,6 +245,7 @@
     let lastBill = null;
 
     function money(n) { return App.formatCurrency(n); }
+    const esc = (v) => App.escapeHtml(v);
 
     function computeTotals() {
       const subtotal = bill.reduce((s, it) => s + it.price * it.quantity, 0);
@@ -260,9 +261,9 @@
       const q = filter.trim().toLowerCase();
       const list = q ? menu.filter(m => m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)) : menu;
       grid.innerHTML = list.map(m => `
-        <button type="button" class="pos-menu-card" data-id="${m.id}">
-          <h4>${m.name}</h4>
-          <div class="cat">${m.category}</div>
+        <button type="button" class="pos-menu-card" data-id="${Number(m.id)}">
+          <h4>${esc(m.name)}</h4>
+          <div class="cat">${esc(m.category)}</div>
           <div class="price">${money(m.price)}</div>
         </button>
       `).join('') || '<p class="bill-empty">No matching items.</p>';
@@ -300,7 +301,7 @@
         wrap.innerHTML = bill.map(it => `
           <div class="bill-line">
             <div>
-              <div class="name">${it.name}</div>
+              <div class="name">${esc(it.name)}</div>
               <div class="unit">${money(it.price)} each</div>
             </div>
             <div class="bill-qty">
@@ -341,15 +342,15 @@
             <p>${STORE.phone} · FSSAI: ${STORE.fssai}</p>
           </div>
           <div class="receipt-meta">
-            <div><span>Bill No.</span><strong>${b.billNumber}</strong></div>
+            <div><span>Bill No.</span><strong>${esc(b.billNumber)}</strong></div>
             <div><span>Date</span><span>${date.toLocaleString('en-IN')}</span></div>
             ${b.customerName && b.customerName !== 'Walk-in Customer'
-              ? `<div><span>Customer</span><span>${b.customerName}${b.customerPhone ? ' · ' + b.customerPhone : ''}</span></div>`
+              ? `<div><span>Customer</span><span>${esc(b.customerName)}${b.customerPhone ? ' · ' + esc(b.customerPhone) : ''}</span></div>`
               : ''}
           </div>
           <div class="receipt-lines">
             ${b.items.map(it => `
-              <div class="rl"><span>${it.name} <small>× ${it.quantity}</small></span><span>${money(it.price * it.quantity)}</span></div>
+              <div class="rl"><span>${esc(it.name)} <small>× ${Number(it.quantity)}</small></span><span>${money(it.price * it.quantity)}</span></div>
             `).join('')}
           </div>
           <div class="receipt-totals">
@@ -359,7 +360,7 @@
             <div class="rt grand"><span>TOTAL</span><span>${money(b.total)}</span></div>
           </div>
           <div class="receipt-foot">
-            Thank you for visiting Thirst.<br>Sweet Stories, Frozen — see you again soon.
+            Thank you for visiting Thirst.<br>One for Living — see you again soon.
           </div>
         </div>
       `;
@@ -503,13 +504,13 @@
         }
         tbody.innerHTML = bills.slice(0, 20).map(b => `
           <tr>
-            <td><strong>${b.billNumber}</strong></td>
-            <td>${b.customerName}</td>
+            <td><strong>${esc(b.billNumber)}</strong></td>
+            <td>${esc(b.customerName)}</td>
             <td>${b.items.reduce((s, i) => s + i.quantity, 0)}</td>
             <td>${money(b.total)}</td>
-            <td>${(b.paymentMethod || '').toUpperCase()}</td>
+            <td>${esc((b.paymentMethod || '').toUpperCase())}</td>
             <td style="white-space:nowrap">${new Date(b.createdAt).toLocaleString('en-IN')}</td>
-            <td><button class="btn btn-secondary btn-sm reprint-btn" data-id="${b.id}">View</button></td>
+            <td><button class="btn btn-secondary btn-sm reprint-btn" data-id="${esc(b.id)}">View</button></td>
           </tr>
         `).join('');
         tbody.querySelectorAll('.reprint-btn').forEach(btn =>

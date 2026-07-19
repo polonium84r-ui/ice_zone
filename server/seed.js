@@ -115,9 +115,21 @@ const COUPONS = [
   { code: 'THIRST50', type: 'flat', value: 50, max_discount: null, min_order: 299, category: null, description: '₹50 off on orders above ₹299', active: 1 }
 ];
 
+// Bootstrap accounts. Passwords/emails come from the environment in production so
+// no publicly-known default password is ever shipped. Locally they fall back to
+// dev defaults (and a warning is printed). Change the admin password after first login.
+const ADMIN_EMAIL = process.env.THIRST_ADMIN_EMAIL || 'admin@thirst.in';
+const ADMIN_PASSWORD = process.env.THIRST_ADMIN_PASSWORD || 'ChangeMe@123';
+const STAFF_EMAIL = process.env.THIRST_STAFF_EMAIL || 'staff@thirst.in';
+const STAFF_PASSWORD = process.env.THIRST_STAFF_PASSWORD || 'ChangeMe@123';
+
+if (!process.env.THIRST_ADMIN_PASSWORD) {
+  console.warn('[seed] THIRST_ADMIN_PASSWORD not set — seeding the admin with a default password. Set it in the environment for production and change it after first login.');
+}
+
 const USERS = [
-  { id: 'admin-001', name: 'Admin User', email: 'admin@thirst.in', password: 'Admin@123', phone: '9999999999', role: 'admin', reward_points: 0 },
-  { id: 'staff-001', name: 'Priya (Counter)', email: 'staff@thirst.in', password: 'Staff@123', phone: '9888800000', role: 'staff', reward_points: 0 }
+  { id: 'admin-001', name: 'Store Admin', email: ADMIN_EMAIL, password: ADMIN_PASSWORD, phone: '', role: 'admin', reward_points: 0 },
+  { id: 'staff-001', name: 'Counter Staff', email: STAFF_EMAIL, password: STAFF_PASSWORD, phone: '', role: 'staff', reward_points: 0 }
 ];
 
 const insertMenu = db.prepare(`INSERT INTO menu_items (name, category, description, price, image, rating, review_count, is_veg, tags, available)

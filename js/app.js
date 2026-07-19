@@ -3,6 +3,16 @@
  */
 
 const App = (() => {
+  /* --- HTML escaping (prevents markup in dynamic values from being parsed) --- */
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /* --- Toast System --- */
   function showToast(message, type = 'info', duration = 3000) {
     let container = document.querySelector('.toast-container');
@@ -83,19 +93,32 @@ const App = (() => {
 
   /* --- Scroll Reveal --- */
   function initScrollReveal() {
-    const reveals = document.querySelectorAll('.reveal');
+    const reveals = document.querySelectorAll('.reveal:not(.visible)');
     if (!reveals.length) return;
+
+    const reveal = el => el.classList.add('visible');
+
+    // Reduced-motion or no IntersectionObserver: show everything immediately.
+    if (!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      reveals.forEach(reveal);
+      return;
+    }
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+          reveal(entry.target);
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
     reveals.forEach(el => observer.observe(el));
+
+    // Fail-safe: content must never stay hidden if the observer misses an
+    // element (fast scroll, long lists, background tabs). Reveal any stragglers.
+    setTimeout(() => reveals.forEach(reveal), 2000);
   }
 
   /* --- Promo Carousel --- */
@@ -263,21 +286,22 @@ const App = (() => {
   /* --- Render Dish Card (display-only showcase) --- */
   function renderDishCard(item, options = {}) {
     const { compact = false } = options;
+    const name = escapeHtml(item.name);
     return `
-      <div class="dish-card reveal" data-id="${item.id}">
+      <div class="dish-card reveal" data-id="${Number(item.id)}">
         <div class="dish-card-image">
-          <img src="${item.image}" alt="${item.name}" loading="lazy"
-            onerror="this.src='https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400&q=80'">
+          <img src="${escapeHtml(item.image)}" alt="${name}" loading="lazy"
+            onerror="this.onerror=null;this.src='assets/hero.jpg'">
         </div>
         <div class="dish-card-body">
           <div class="dish-card-header">
-            <h3>${item.name}</h3>
+            <h3>${name}</h3>
             <span class="veg-indicator ${item.isVeg ? 'veg' : 'non-veg'}" title="${item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'}"></span>
           </div>
-          ${!compact ? `<p class="dish-desc">${item.description}</p>` : ''}
+          ${!compact ? `<p class="dish-desc">${escapeHtml(item.description)}</p>` : ''}
           <div class="dish-rating">
-            <span class="star">★</span> ${item.rating}
-            <span class="count">(${item.reviewCount})</span>
+            <span class="star">★</span> ${Number(item.rating)}
+            <span class="count">(${Number(item.reviewCount)})</span>
           </div>
           <div class="dish-footer">
             <span class="dish-price">${formatCurrency(item.price)}</span>
@@ -328,6 +352,7 @@ const App = (() => {
   }
 
   return {
+    escapeHtml,
     showToast,
     formatCurrency,
     initNavbar,

@@ -11,6 +11,10 @@ const db = require('./db');
 const JWT_SECRET = process.env.THIRST_JWT_SECRET || 'thirst-dev-secret-' + crypto.randomBytes(8).toString('hex');
 const TOKEN_TTL = '7d';
 
+if (!process.env.THIRST_JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.warn('[auth] THIRST_JWT_SECRET is not set in production — using a random per-process secret. All sessions will be invalidated on every restart. Set THIRST_JWT_SECRET to a long random value.');
+}
+
 function hashPassword(plain) {
   return bcrypt.hashSync(plain, 10);
 }
@@ -55,6 +59,20 @@ function authenticate(req, res, next) {
   }
 }
 
+// Resolves the user from a Bearer token WITHOUT failing the request.
+// Lets the public session check return { user: null } (200) for an expired
+// or invalid token instead of a noisy 401 in the browser console.
+function optionalUser(req) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return null;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.sub);
+    return user && user.active ? user : null;
+  } catch { return null; }
+}
+
 // Restricts a route to the given roles. Admin is implicitly allowed everywhere.
 function authorize(...roles) {
   return (req, res, next) => {
@@ -65,4 +83,4 @@ function authorize(...roles) {
   };
 }
 
-module.exports = { JWT_SECRET, hashPassword, verifyPassword, sanitizeUser, issueToken, authenticate, authorize };
+module.exports = { JWT_SECRET, hashPassword, verifyPassword, sanitizeUser, issueToken, authenticate, authorize, optionalUser };

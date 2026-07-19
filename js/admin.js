@@ -76,12 +76,12 @@ const Admin = (() => {
     if (!tbody) return;
 
     tbody.innerHTML = menuItems.map(item => `
-      <tr data-id="${item.id}">
-        <td><img src="${item.image}" alt="${item.name}" style="width:48px;height:48px;border-radius:8px;object-fit:cover"></td>
+      <tr data-id="${Number(item.id)}">
+        <td><img src="${App.escapeHtml(item.image)}" alt="${App.escapeHtml(item.name)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover"></td>
         <td>
-          <input type="text" class="form-control edit-name" value="${item.name}" style="padding:6px 10px;font-size:13px">
+          <input type="text" class="form-control edit-name" value="${App.escapeHtml(item.name)}" style="padding:6px 10px;font-size:13px">
         </td>
-        <td>${item.category}</td>
+        <td>${App.escapeHtml(item.category)}</td>
         <td>
           <input type="number" class="form-control edit-price" value="${item.price}" style="padding:6px 10px;font-size:13px;width:90px">
         </td>
@@ -157,8 +157,8 @@ const Admin = (() => {
 
     container.innerHTML = coupons.map(c => `
       <div style="background:var(--color-surface);padding:24px;border-radius:12px;box-shadow:var(--shadow-sm);border-left:4px solid var(--color-accent)">
-        <h3 style="font-size:18px;color:var(--color-primary);margin-bottom:8px">${c.code}</h3>
-        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:8px">${c.description}</p>
+        <h3 style="font-size:18px;color:var(--color-primary);margin-bottom:8px">${App.escapeHtml(c.code)}</h3>
+        <p style="font-size:14px;color:var(--color-text-muted);margin-bottom:8px">${App.escapeHtml(c.description)}</p>
         <p style="font-size:13px">
           ${c.type === 'percentage' ? c.value + '% off' : '₹' + c.value + ' off'}
           ${c.maxDiscount ? ' (max ₹' + c.maxDiscount + ')' : ''}
@@ -226,11 +226,11 @@ const Admin = (() => {
     }
     const me = Auth.getUser();
     tbody.innerHTML = users.map(u => `
-      <tr data-id="${u.id}">
-        <td><strong>${u.name}</strong></td>
-        <td>${u.email}</td>
-        <td>${u.phone || '—'}</td>
-        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+      <tr data-id="${App.escapeHtml(u.id)}">
+        <td><strong>${App.escapeHtml(u.name)}</strong></td>
+        <td>${App.escapeHtml(u.email)}</td>
+        <td>${App.escapeHtml(u.phone || '—')}</td>
+        <td><span class="role-badge role-${App.escapeHtml(u.role)}">${App.escapeHtml(u.role)}</span></td>
         <td>${u.active
           ? '<span class="status-pill status-active">Active</span>'
           : '<span class="status-pill status-inactive">Disabled</span>'}</td>
@@ -368,11 +368,11 @@ const Admin = (() => {
     }
     tbody.innerHTML = logs.map(l => `
       <tr>
-        <td>${l.userName || '—'}</td>
-        <td><span class="role-badge role-${l.userRole}">${l.userRole || '—'}</span></td>
-        <td><code class="audit-action">${l.action}</code></td>
-        <td>${l.entityType ? `${l.entityType} ${l.entityId ? '#' + l.entityId : ''}` : '—'}</td>
-        <td style="color:var(--color-text-muted);font-size:13px">${l.details ? formatDetails(l.details) : '—'}</td>
+        <td>${App.escapeHtml(l.userName || '—')}</td>
+        <td><span class="role-badge role-${App.escapeHtml(l.userRole || '')}">${App.escapeHtml(l.userRole || '—')}</span></td>
+        <td><code class="audit-action">${App.escapeHtml(l.action)}</code></td>
+        <td>${l.entityType ? `${App.escapeHtml(l.entityType)} ${l.entityId ? '#' + App.escapeHtml(l.entityId) : ''}` : '—'}</td>
+        <td style="color:var(--color-text-muted);font-size:13px">${l.details ? App.escapeHtml(formatDetails(l.details)) : '—'}</td>
         <td style="white-space:nowrap">${new Date(l.createdAt).toLocaleString('en-IN')}</td>
       </tr>
     `).join('');

@@ -54,26 +54,6 @@ db.exec(`
     active       INTEGER NOT NULL DEFAULT 1
   );
 
-  CREATE TABLE IF NOT EXISTS orders (
-    id              TEXT PRIMARY KEY,
-    user_id         TEXT,
-    customer_name   TEXT,
-    items           TEXT NOT NULL,                     -- JSON array
-    subtotal        REAL NOT NULL DEFAULT 0,
-    delivery_fee    REAL NOT NULL DEFAULT 0,
-    platform_fee    REAL NOT NULL DEFAULT 0,
-    gst             REAL NOT NULL DEFAULT 0,
-    coupon_discount REAL NOT NULL DEFAULT 0,
-    points_redeemed INTEGER NOT NULL DEFAULT 0,
-    points_earned   INTEGER NOT NULL DEFAULT 0,
-    grand_total     REAL NOT NULL DEFAULT 0,
-    delivery_option TEXT,
-    address         TEXT,                              -- JSON object
-    payment         TEXT,                              -- JSON object
-    status          TEXT NOT NULL DEFAULT 'Placed',
-    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-
   CREATE TABLE IF NOT EXISTS reviews (
     id            TEXT PRIMARY KEY,
     dish_id       INTEGER,
@@ -114,7 +94,6 @@ db.exec(`
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
-  CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
   CREATE INDEX IF NOT EXISTS idx_bills_created  ON bills(created_at);
   CREATE INDEX IF NOT EXISTS idx_audit_created  ON audit_logs(created_at);
   CREATE INDEX IF NOT EXISTS idx_reviews_dish   ON reviews(dish_id);

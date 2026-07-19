@@ -1,7 +1,7 @@
 {
   "name": "thirst-backend",
   "version": "1.0.0",
-  "description": "Backend API + SQLite database for Thirst. frozen-treats ordering platform",
+  "description": "Backend API + SQLite database for Thirst. — public menu showcase and staff/admin POS & admin console",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

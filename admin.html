@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="assets/thirst-logo.png">
-  <meta name="description" content="Thirst. Admin Dashboard — Manage menu, orders, coupons, and reviews.">
+  <meta name="description" content="Thirst. Admin Dashboard — manage the menu, users, coupons, billing, and audit log.">
+  <meta name="robots" content="noindex, nofollow">
   <title>Admin Dashboard — Thirst.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,14 +249,8 @@
           </div>
           <div class="form-group">
             <label>Category</label>
-            <select name="category" class="form-control" required>
+            <select name="category" class="form-control" id="add-item-category" required>
               <option value="">Select category</option>
-              <option>Signature</option>
-              <option>Kunafa Specials</option>
-              <option>Fruit Pops</option>
-              <option>Chocolate &amp; Nutty</option>
-              <option>Kulfi Classics</option>
-              <option>Shakes &amp; Sips</option>
             </select>
           </div>
           <div class="form-group">
@@ -277,7 +272,7 @@
           </div>
           <div class="form-group">
             <label>Image URL</label>
-            <input type="url" name="image" class="form-control" required placeholder="https://images.unsplash.com/...">
+            <input type="url" name="image" class="form-control" required placeholder="https://… (link to the item photo)">
           </div>
           <div class="form-group">
             <label>Tags (comma-separated)</label>
@@ -302,6 +297,14 @@
       const user = Auth.getUser();
       if (user) {
         document.getElementById('admin-greeting').textContent = `Welcome, ${user.name}`;
+      }
+
+      // Populate the "Add Item" category dropdown from the shared category list
+      // (skip "All") so it always matches the live menu categories.
+      const catSelect = document.getElementById('add-item-category');
+      if (catSelect && typeof CATEGORIES !== 'undefined') {
+        catSelect.insertAdjacentHTML('beforeend',
+          CATEGORIES.filter(c => c !== 'All').map(c => `<option value="${c}">${c}</option>`).join(''));
       }
 
       // Mobile sidebar toggle — wired up before the (awaited) admin data

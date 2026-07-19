@@ -1,8 +1,11 @@
-# Thirst. — Sweet Stories, Frozen 🍦
+# Thirst. — One for Living 🍫
 
-The official ordering platform for **Thirst.** (📍 Thiruvallur · [@popsicle__stories](https://www.instagram.com/popsicle__stories)) — handcrafted kunafa, kulfi & frozen treats.
+The website + counter system for **Thirst.** (📍 Kakkalur, Thiruvallur · [@thirst_fresh](https://www.instagram.com/thirst_fresh)) — handcrafted hot chocolate, loaded waffles, thick shakes, brownies, pancakes & more, made fresh daily from 5 PM to 10 PM.
 
-A full-stack food-ordering application: a **vanilla HTML/CSS/JavaScript** frontend (no build step) backed by a **Node.js + Express + SQLite** REST API with **JWT authentication** and **role-based access control**. It covers the complete journey — customers browsing and ordering online, staff running a walk-in **Billing/POS** with shareable PDF receipts, and admins managing the menu, orders, users, coupons, reviews, and a full **audit log**.
+A small full-stack app: a **vanilla HTML/CSS/JavaScript** frontend (no build step) backed by a **Node.js + Express + SQLite** REST API with **JWT authentication** and **role-based access control**. It has two parts:
+
+- **Public site** (customer-facing, mobile-first) — a browse-only showcase of the menu. There is **no online ordering or customer login**; all sales happen at the counter.
+- **Staff / Admin console** (desktop) — a **Billing / POS** for walk-in sales with shareable PDF receipts, plus an **admin dashboard** to manage the menu, users, coupons, and an audit log.
 
 ---
 
@@ -15,39 +18,36 @@ A full-stack food-ordering application: a **vanilla HTML/CSS/JavaScript** fronte
 | **Database** | [SQLite](https://www.sqlite.org/) via [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) `^11.3` (synchronous, single-file, WAL mode) |
 | **Auth** | [`jsonwebtoken`](https://github.com/auth0/node-jsonwebtoken) `^9.0` (JWT Bearer tokens, 7-day expiry) + [`bcryptjs`](https://github.com/dcodeIO/bcrypt.js) `^2.4` (password hashing) |
 | **API middleware** | [`cors`](https://github.com/expressjs/cors) `^2.8`, `express.json` |
-| **Fonts** | Google Fonts — Pacifico (wordmark), Playfair Display (headings), Inter (body) |
-| **Frontend libraries (CDN)** | [GSAP](https://gsap.com/) `3.12.5` + ScrollTrigger (hero scroll story), [jsPDF](https://github.com/parallax/jsPDF) `2.5.1` + [html2canvas](https://html2canvas.hertzen.com/) `1.4.1` (receipt → PDF), [JSZip](https://stuk.github.io/jszip/) `3.10.1` (frame-extraction dev tool only) |
+| **Fonts** | Google Fonts — Pacifico, Playfair Display, Inter |
+| **Frontend libraries (CDN)** | [jsPDF](https://github.com/parallax/jsPDF) `2.5.1` + [html2canvas](https://html2canvas.hertzen.com/) `1.4.1` (receipt → PDF, billing page only) |
 | **PWA** | Web App Manifest + Service Worker (`sw.js`, cache-first shell, bypasses `/api/`) |
 | **Runtime** | Node.js **18+** |
 
-**No bundler, transpiler, or Node framework on the frontend** — the browser runs the source directly, and the Express server also hosts the static site, so a single command runs the whole stack.
+**No bundler or transpiler** — the browser runs the source directly, and in local dev the Express server also hosts the static site, so a single command runs the whole stack.
 
 ---
 
-## ✨ Features
+## ✨ What each part does
 
-### 🛒 Customer
-- Browse the menu with **category filters, live search, veg-only toggle, and sorting** (popularity, rating, price)
-- **Shopping cart** with real-time quantity updates and persistent per-device state
-- **Coupons** — order-based and category-specific discount validation
-- **Reward points** — earn on orders, redeem up to 50% of the bill
-- **Simulated payment gateway** with realistic failure handling (cart & checkout state preserved on failure)
-- **Order history** with details and reorder
-- **Reviews & ratings** that update the item's live rating
+### 🌐 Public site (mobile-first)
+- **Home** (`index.html`) — hero, why-Thirst, popular treats (pulled live from the menu)
+- **Menu** (`menu.html`) — category filters, live search, veg-only toggle, sort (popularity / rating / price), and a read-only dish detail view
+- **About** (`about.html`) — story, values, outlet, contact & franchise enquiry forms
 
-### 🧾 Staff — Billing / POS
+### 🧾 Staff — Billing / POS (`billing.html`, desktop)
 - Build a walk-in bill from the live menu or **custom line items**
 - Auto-numbered invoices (`INV-YYYYMMDD-NNNN`), **5% GST**, discounts
 - Generate a **PDF receipt** and share it — **Send on WhatsApp**, **Download PDF**, or **Print** (isolated 80mm thermal layout)
 - View recent bills and re-open any receipt
 
-### 🛠️ Admin
-- **Dashboard** — today's orders/revenue, average rating, weekly orders, staff count
+### 🛠️ Admin (`admin.html`, desktop)
+- **Dashboard** — today's bills & revenue, average rating, active coupons, weekly bills chart
 - **Menu Management** — add / edit / delete items, toggle availability
-- **Order Management** — view all orders, update status
-- **User Management** — create & manage staff/customer accounts, enable/disable
-- **Coupons** and **Reviews** overview
-- **Audit Log** — every login, order, bill, menu edit, and user change recorded with actor, role, timestamp, and details
+- **User Management** — create & manage staff/admin accounts, enable/disable (soft-disable; can't disable the last admin)
+- **Coupons** — active coupon reference
+- **Audit Log** — every login, bill, menu edit, and user change recorded with actor, role, timestamp, and details
+
+Roles are **admin** and **staff** only — there is no customer account.
 
 ---
 
@@ -57,98 +57,74 @@ A full-stack food-ordering application: a **vanilla HTML/CSS/JavaScript** fronte
 - **Node.js 18 or newer** (`node --version`)
 
 ### Install & run
-The Express server serves both the API and the static site, so one process runs everything.
+The Express server serves both the API and the static site in local dev, so one process runs everything.
 
 ```bash
 cd server
 npm install     # express, better-sqlite3, bcryptjs, jsonwebtoken, cors
-npm run seed    # creates server/data/thirst.db and seeds menu, coupons, demo users
+npm run seed    # creates server/data/thirst.db and seeds the menu, coupons & bootstrap users
 npm start       # starts API + site at http://localhost:4000
 ```
 
-Then open **http://localhost:4000**.
+Then open **http://localhost:4000**. The staff/admin console is at **/admin**.
 
 ### Resetting the database
 The database is a single file at `server/data/thirst.db`.
 - Delete it and re-run `npm run seed` for a clean slate.
-- Re-running `npm run seed` is **idempotent** — it only inserts rows that don't already exist.
+- Re-running `npm run seed` is **idempotent**; the menu is versioned (`MENU_VERSION` in `seed.js`) and re-seeds fully when bumped.
 
 ### Configuration (environment variables)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `PORT` | `4000` | Port for the API + static site |
-| `THIRST_JWT_SECRET` | random per-process | Fixed JWT signing secret — **set this in production** so tokens survive restarts |
+| `NODE_ENV` | — | Set to `production` to serve API-only (frontend hosted separately) |
+| `THIRST_JWT_SECRET` | random per-process | Fixed JWT signing secret — **set this in production** so sessions survive restarts |
+| `THIRST_ADMIN_EMAIL` | `admin@thirst.in` | Bootstrap admin email (seed) |
+| `THIRST_ADMIN_PASSWORD` | `ChangeMe@123` | Bootstrap admin password — **set this in production** |
+| `THIRST_STAFF_EMAIL` | `staff@thirst.in` | Bootstrap staff email (seed) |
+| `THIRST_STAFF_PASSWORD` | `ChangeMe@123` | Bootstrap staff password |
 
 ```bash
-PORT=5000 THIRST_JWT_SECRET=your-long-random-secret npm start
+PORT=5000 THIRST_JWT_SECRET=your-long-random-secret \
+THIRST_ADMIN_PASSWORD=your-strong-admin-password npm start
 ```
 
----
-
-## 🔑 Demo Accounts
-
-| Role | Email | Password | Lands on | Can do |
-|------|-------|----------|----------|--------|
-| **Admin** | `admin@thirst.in` | `Admin@123` | `admin.html` | Everything — menu, orders, users, audit, coupons, billing |
-| **Staff** | `staff@thirst.in` | `Staff@123` | `billing.html` | Walk-in billing / receipts, view & update orders |
-| **Customer** | `customer@test.com` | `Test@123` | `menu.html` | Browse, order online, track orders |
-
-New **customer** accounts can self-register via the Sign Up modal. **Staff and admin accounts are created by an admin** in User Management. On the login page, customers use the **Customer Login** tab; staff and admins use the **Staff / Admin** tab.
+> ⚠️ **Security:** the seed only creates the admin/staff accounts if they don't already exist. Always set `THIRST_ADMIN_PASSWORD` (and `THIRST_JWT_SECRET`) in production, and change the password after first login.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-Popsicle-Stories/
-├── index.html              # Home — hero scroll story (GSAP), PWA + SEO
-├── menu.html               # Menu & ordering (filters, search, sort)
-├── cart.html               # Cart & checkout (payment simulation)
-├── orders.html             # Customer order history & tracking
-├── login.html              # Role-aware login (customer / staff / admin)
+├── index.html              # Home (public, mobile-first)
+├── menu.html               # Menu browse (filters, search, sort)
 ├── about.html              # About, values, contact
-├── admin.html              # Admin console (dashboard, menu, orders, users, audit, coupons, reviews)
+├── login.html              # Staff / admin login  (served at /admin)
+├── admin.html              # Admin console (dashboard, menu, users, audit, coupons)
 ├── billing.html            # Staff Billing / POS — PDF receipts + sharing
-├── extract-frames.html     # Dev tool: extract video frames for the hero animation (JSZip)
 ├── manifest.json           # PWA manifest
 ├── sw.js                   # Service worker (caches shell, bypasses /api/)
 ├── assets/
-│   └── thirst-logo.png     # Brand logo (favicon, navbars, receipts)
+│   ├── thirst-logo.png     # Brand logo (favicon, navbars, receipts)
+│   └── hero.jpg            # Home hero photo
 ├── css/
-│   └── styles.css          # Complete design system + responsive breakpoints
+│   └── styles.css          # Design system + responsive breakpoints
 ├── js/
-│   ├── data.js             # Frontend constants (categories, promos, testimonials)
+│   ├── data.js             # Frontend display constants (categories, promos, outlet, features)
 │   ├── api.js              # REST client for the backend (fetch + JWT)
 │   ├── auth.js             # Session management & role guards
-│   ├── cart.js             # Cart & pricing logic
-│   ├── app.js              # Shared UI utilities, validation, toasts, auth UI
-│   ├── admin.js            # Admin console logic (users, audit, coupons)
-│   └── scroll-animation.js # Canvas frame-sequence hero animation
+│   ├── app.js              # Shared UI utilities, validation, toasts, HTML escaping
+│   └── admin.js            # Admin console logic (menu, users, audit, coupons)
 └── server/                 # ── Backend (Node + Express + SQLite) ──
     ├── server.js           # Express app: REST API + static host
     ├── db.js               # SQLite connection + schema
     ├── auth.js             # JWT + bcrypt helpers, auth/role middleware
     ├── audit.js            # Audit-log writer
-    ├── seed.js             # Idempotent database seed
+    ├── seed.js             # Idempotent database seed (menu, coupons, users)
     ├── package.json        # Backend dependencies & scripts
     └── data/               # thirst.db lives here (gitignored)
 ```
-
----
-
-## 🏗️ Architecture
-
-```
-Browser (vanilla JS)  ──fetch + JWT──►  Express  ──►  better-sqlite3  ──►  thirst.db
-   │                                       │
-   │  cart / checkout draft / addresses    │  serves the static frontend
-   └─ localStorage (per-device state)      └─ all persistent data + auth + audit
-```
-
-- **The frontend never touches the database directly.** All data access goes through `js/api.js`, which calls the REST API under `/api/v1`.
-- **Client-local working state** (cart contents, checkout draft, saved addresses) lives in `localStorage`; **everything persistent** (users, menu, orders, bills, reviews, coupons, audit) lives server-side in SQLite.
-- **Auth:** login returns a JWT; the client stores it and sends `Authorization: Bearer <token>` on protected calls. Passwords are bcrypt-hashed; admins implicitly pass all role checks.
 
 ---
 
@@ -158,12 +134,10 @@ All endpoints are under the **`/api/v1`** prefix. 🔒 = requires a valid token.
 
 | Area | Endpoints |
 |------|-----------|
-| **Auth** | `POST /auth/login`, `POST /auth/register`, `POST /auth/logout` 🔒, `GET /auth/session` 🔒 |
+| **Auth** | `POST /auth/login`, `POST /auth/logout` 🔒, `GET /auth/session` |
 | **Menu** | `GET /menu`, `GET /menu/all` 🔒staff, `GET /menu/:id`, `POST` / `PUT /:id` / `DELETE /:id` 🔒admin |
-| **Coupons** | `GET /coupons`, `POST /coupons/validate`, `POST /coupons` 🔒admin |
-| **Orders** | `POST /orders` 🔒, `GET /orders` 🔒staff, `GET /orders/mine` 🔒, `PUT /orders/:id/status` 🔒staff |
-| **Reviews** | `GET /reviews`, `POST /reviews` 🔒 |
-| **Payments** | `POST /payments/process` (simulated gateway) |
+| **Coupons** | `GET /coupons`, `POST /coupons` 🔒admin |
+| **Reviews** | `GET /reviews` (read-only) |
 | **Users** | `GET` / `POST /users` 🔒admin, `PUT` / `DELETE /users/:id` 🔒admin |
 | **Bills** | `POST /bills` 🔒staff, `GET /bills` 🔒staff, `GET /bills/:id` 🔒staff |
 | **Audit** | `GET /audit` 🔒admin |
@@ -180,51 +154,22 @@ SQLite tables (see `server/db.js`):
 
 | Table | Purpose |
 |-------|---------|
-| `users` | Accounts — role (`admin`/`staff`/`customer`), bcrypt hash, reward points, active flag |
+| `users` | Accounts — role (`admin`/`staff`), bcrypt hash, active flag |
 | `menu_items` | Products — name, category, description, price, image, rating, tags, availability |
 | `coupons` | Discount codes — percentage/flat, min order, category scope |
-| `orders` | Online orders — items (JSON), totals, delivery, payment, status |
-| `reviews` | Item ratings & comments (updates the item's aggregate rating) |
+| `reviews` | Item ratings & comments (read-only on the public menu) |
 | `bills` | Walk-in POS invoices — line items, GST, totals, payment method |
-| `audit_logs` | Immutable trail of every meaningful action (actor, role, entity, details, IP) |
-
----
-
-## 👥 Roles & Permissions
-
-- **Admin** — full access; manages menu, orders, coupons, reviews, and users, and reviews the audit log. Admin bypasses all role checks.
-- **Staff** — runs the Billing/POS terminal and can view/update order statuses.
-- **Customer** — browses, orders online with cart/coupons/reward points, and tracks their own orders.
+| `audit_logs` | Trail of every meaningful action (actor, role, entity, details, IP) |
 
 ---
 
 ## 🍧 Menu & Categories
 
-24 seeded items across six categories:
+Seeded from the current Thirst. menu (`server/seed.js`, versioned via `MENU_VERSION`):
 
-`Signature` · `Kunafa Specials` · `Fruit Pops` · `Chocolate & Nutty` · `Kulfi Classics` · `Shakes & Sips`
+`Hot Chocolate` · `Crushers` · `Shakes` · `Waffles` · `Pancakes` · `Brownies & Cakes` · `Maggi` · `Combos`
 
-## 🎟️ Coupons
-
-| Code | Discount | Conditions |
-|------|----------|------------|
-| `SWEET20` | 20% off (max ₹100) | Any order |
-| `FLAT50` | ₹50 flat off | Orders above ₹299 |
-| `KUNAFA10` | 10% off | `Kunafa Specials` category only |
-
-## 🎁 Reward Points
-
-- Earn **1 point per ₹10** spent on successful orders
-- **1 point = ₹1** redemption value
-- Redeem up to **50%** of the bill at checkout
-- The demo customer starts with **120 points**
-
-## 💳 Payment Simulation
-
-`POST /api/v1/payments/process` fakes a gateway:
-- **~30% random failure** on card/UPI (Cash on Delivery never fails randomly)
-- **Force failure** button always triggers an error, for demos
-- On failure, the cart, coupon, reward redemption, delivery choice, and address are **all preserved**; on success the cart clears and points are credited
+Menu **item photos** currently use stock image URLs as placeholders — replace the `image` field of each item (via Admin → Menu Management, or in `seed.js`) with real product photos for production.
 
 ---
 
@@ -240,7 +185,7 @@ SQLite tables (see `server/db.js`):
 | Breakpoints | 480px · 768px · 1024px · 1440px |
 | Currency | Indian Rupee (₹), `en-IN` formatting |
 
-The interface is responsive and keyboard-accessible, with ARIA labels, focus styles, and reduced-motion handling throughout.
+The public site is mobile-first and responsive; the POS and admin console are designed for desktop use. Dynamic values rendered into the page are HTML-escaped (`App.escapeHtml`).
 
 ---
 
@@ -252,12 +197,10 @@ The interface is responsive and keyboard-accessible, with ARIA labels, focus sty
 
 ---
 
-## ⚠️ Known Limitations
+## ☁️ Deployment
 
-1. **Simulated payments** — swap `POST /payments/process` for a real provider (Razorpay, Stripe, …) for live transactions.
-2. **Single-node SQLite** — ideal for one store/counter. For multi-outlet scale, migrate to Postgres/MySQL (the SQL and API layer port over directly).
-3. **No email/SMS** — order and receipt notifications are on-screen only.
-4. **Demo images** — menu images use the Unsplash CDN; replace with your own for production.
+- **Frontend** — static hosting (e.g. Vercel; see `vercel.json` for the clean-URL rewrites, including `/admin` → `login.html`).
+- **Backend** — Node service (e.g. Render; see `render.yaml`). Set `NODE_ENV=production`, `THIRST_JWT_SECRET`, and `THIRST_ADMIN_PASSWORD`. In production the API runs on its own origin; the frontend points at it via `window.THIRST_API` or the built-in fallback in `js/api.js`.
 
 ---
 

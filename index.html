@@ -6,22 +6,22 @@
   <link rel="icon" type="image/png" href="assets/thirst-logo.png">
 
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Thirst. — Handcrafted kunafa, kulfi & frozen treats in Thiruvallur. Fresh, delicious desserts made daily.">
-  <meta name="keywords" content="kulfi, kunafa, ice cream, frozen desserts, Thiruvallur, popsicles">
+  <meta name="description" content="Thirst. — handcrafted hot chocolate, loaded waffles, thick shakes, brownies & more in Thiruvallur. Made fresh daily, 5 PM to 10 PM.">
+  <meta name="keywords" content="hot chocolate, waffles, thick shakes, brownies, pancakes, boba, desserts, Thiruvallur, Thirst">
   <meta name="author" content="Thirst.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.thirst.in/">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Thirst. — Sweet Stories, Frozen">
-  <meta property="og:description" content="Handcrafted kunafa, kulfi & frozen treats in Thiruvallur.">
+  <meta property="og:title" content="Thirst. — One for Living">
+  <meta property="og:description" content="Handcrafted hot chocolate, loaded waffles, thick shakes & desserts in Thiruvallur.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.thirst.in/">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1200&q=80">
+  <meta property="og:image" content="https://www.thirst.in/assets/hero.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
   <meta name="theme-color" content="#C4213C">
-  <title>Thirst. — Sweet Stories, Frozen | Handcrafted Kunafa & Kulfi</title>
+  <title>Thirst. — Hot Chocolate, Waffles, Shakes &amp; Desserts | Thiruvallur</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "name": "Thirst.",
-    "description": "Handcrafted kunafa, kulfi & frozen treats",
+    "description": "Handcrafted hot chocolate, waffles, shakes & desserts",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "No. 01, Siva Vishnu Kovil Street, Kakkalur",
@@ -55,7 +55,7 @@
     },
     "telephone": "+91-85250-03546",
     "priceRange": "₹₹",
-    "servesCuisine": "Desserts, Frozen Treats",
+    "servesCuisine": "Desserts, Hot Chocolate, Waffles, Shakes",
     "openingHours": "Mo-Su 17:00-22:00"
   }
   </script>
@@ -92,13 +92,13 @@
   <!-- Hero -->
   <header class="hero" id="main-content">
     <div class="hero-bg">
-      <img src="assets/hero.jpg" alt="Handcrafted frozen popsicles" fetchpriority="high">
+      <img src="assets/hero.jpg" alt="Handcrafted hot chocolate being poured" fetchpriority="high">
     </div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      <span class="story-badge">📍 Now in Thiruvallur</span>
-      <h1>Sweet Stories, Frozen</h1>
-      <p>Handcrafted kunafa, kulfi & frozen treats — slow-churned, made fresh daily from real fruit and honest ingredients.</p>
+      <span class="story-badge">🍫 One for Living</span>
+      <h1>Hot Chocolate &amp; Loaded Waffles</h1>
+      <p>Thick shakes, brownies, pancakes, crushers &amp; more — handcrafted, freshly made, and served daily from 5 PM to 10 PM.</p>
       <div class="hero-ctas">
         <a href="menu.html" class="btn btn-primary btn-lg">View Menu</a>
         <a href="about.html" class="btn btn-ghost btn-lg">Our Story</a>
@@ -134,20 +134,11 @@
     </div>
   </section>
 
-  <!-- Testimonials -->
-  <section class="section">
-    <div class="container">
-      <h2 class="section-title reveal">Loved by Locals</h2>
-      <p class="section-subtitle reveal">What our neighbours in Thiruvallur are saying.</p>
-      <div class="card-grid card-grid-3 reveal" id="testimonials"></div>
-    </div>
-  </section>
-
   <!-- Final CTA -->
   <section class="section" style="text-align:center;background:var(--color-surface)">
     <div class="container reveal">
-      <h2 class="section-title">Craving Something Frozen?</h2>
-      <p class="section-subtitle">Explore our full menu of kunafa, kulfi, fruit pops & shakes — freshly made every day.</p>
+      <h2 class="section-title">Craving Something Sweet?</h2>
+      <p class="section-subtitle">Explore our full menu of hot chocolate, waffles, shakes, brownies &amp; more — freshly made every day.</p>
       <a href="menu.html" class="btn btn-primary btn-lg">View the Menu</a>
     </div>
   </section>
@@ -158,7 +149,7 @@
       <div class="footer-grid">
         <div>
           <h4><img src="assets/thirst-logo.png" alt="" class="footer-logo-img">Thirst.</h4>
-          <p>Handcrafted kunafa &amp; kulfi treats. Sweet stories, frozen — made fresh in Thiruvallur.</p>
+          <p>Handcrafted hot chocolate, waffles, shakes &amp; desserts — made fresh in Thiruvallur. One for living.</p>
           <div class="footer-social">
             <a href="https://www.instagram.com/thirst_fresh" target="_blank" rel="noopener" aria-label="Instagram">📷</a>
             <a href="https://youtube.com/@thirstfreshzz" target="_blank" rel="noopener" aria-label="YouTube">▶️</a>
@@ -234,21 +225,6 @@
       } catch {
         document.getElementById('popular').innerHTML =
           '<p style="grid-column:1/-1;text-align:center;color:var(--color-text-muted)">Menu is loading — <a href="menu.html">view it here</a>.</p>';
-      }
-
-      // Testimonials
-      const tst = document.getElementById('testimonials');
-      if (tst && typeof TESTIMONIALS !== 'undefined') {
-        tst.innerHTML = TESTIMONIALS.map(t => `
-          <div class="testimonial-card">
-            <div class="testimonial-header">
-              <img class="testimonial-avatar" src="${t.avatar}" alt="${t.name}" loading="lazy">
-              <div><strong>${t.name}</strong></div>
-            </div>
-            <div class="testimonial-stars">${'★'.repeat(t.rating)}</div>
-            <p class="testimonial-text">${t.text}</p>
-          </div>
-        `).join('');
       }
 
       // Reveal any content added after initial load

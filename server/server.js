@@ -10,7 +10,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./db');
 const audit = require('./audit');
-const { hashPassword, verifyPassword, sanitizeUser, issueToken, authenticate, authorize } = require('./auth');
+const { hashPassword, verifyPassword, sanitizeUser, issueToken, authenticate, authorize, optionalUser } = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -69,8 +69,11 @@ app.post('/api/v1/auth/logout', authenticate, wrap((req, res) => {
   res.json({ ok: true }); // stateless JWT — client discards the token
 }));
 
-app.get('/api/v1/auth/session', authenticate, wrap((req, res) => {
-  res.json({ user: sanitizeUser(req.user) });
+// Public session check — never 401s (returns { user: null } for an
+// absent / expired / invalid token) so it stays out of the browser console.
+app.get('/api/v1/auth/session', wrap((req, res) => {
+  const user = optionalUser(req);
+  res.json({ user: user ? sanitizeUser(user) : null });
 }));
 
 // =====================================================================
