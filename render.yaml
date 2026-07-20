@@ -1,12 +1,17 @@
 services:
   - type: web
-    name: ice-zone-api
+    name: ice-zone
     runtime: node
-    rootDir: server
-    buildCommand: npm install
-    startCommand: node seed.js && node server.js
+    buildCommand: npm install && npx prisma migrate deploy && npm run build
+    startCommand: npx tsx prisma/seed.ts && npm start
     envVars:
-      - key: PORT
-        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: thirst-db
+          property: connectionString
       - key: THIRST_JWT_SECRET
         generateValue: true
+
+databases:
+  - name: thirst-db
+    plan: free

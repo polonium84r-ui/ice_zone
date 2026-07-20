@@ -1,0 +1,106 @@
+// Thirst. database schema — PostgreSQL via Prisma.
+// Mirrors the original SQLite schema 1:1 (users, menu_items, coupons,
+// reviews, bills, audit_logs) with the same defaults and semantics.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  phone        String?
+  role         String   @default("staff") // admin | staff
+  rewardPoints Int      @default(0) @map("reward_points")
+  active       Boolean  @default(true)
+  createdBy    String?  @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model MenuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  description String?
+  price       Float
+  image       String?
+  rating      Float    @default(4.0)
+  reviewCount Int      @default(0) @map("review_count")
+  isVeg       Boolean  @default(true) @map("is_veg")
+  tags        Json     @default("[]")
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("menu_items")
+}
+
+model Coupon {
+  code        String  @id
+  type        String // percentage | flat
+  value       Float
+  maxDiscount Float?  @map("max_discount")
+  minOrder    Float   @default(0) @map("min_order")
+  category    String?
+  description String?
+  active      Boolean @default(true)
+
+  @@map("coupons")
+}
+
+model Review {
+  id           String   @id
+  dishId       Int?     @map("dish_id")
+  rating       Int
+  comment      String?
+  customerName String?  @map("customer_name")
+  orderId      String?  @map("order_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([dishId])
+  @@map("reviews")
+}
+
+model Bill {
+  id            String   @id
+  billNumber    String   @unique @map("bill_number")
+  staffId       String?  @map("staff_id")
+  staffName     String?  @map("staff_name")
+  customerName  String?  @map("customer_name")
+  customerPhone String?  @map("customer_phone")
+  items         Json
+  subtotal      Float    @default(0)
+  discount      Float    @default(0)
+  tax           Float    @default(0)
+  total         Float    @default(0)
+  paymentMethod String?  @map("payment_method")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("bills")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     String?  @map("user_id")
+  userName   String?  @map("user_name")
+  userRole   String?  @map("user_role")
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  details    String?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}

@@ -2,7 +2,7 @@
 
 The website + counter system for **Thirst.** (📍 Kakkalur, Thiruvallur · [@thirst_fresh](https://www.instagram.com/thirst_fresh)) — handcrafted hot chocolate, loaded waffles, thick shakes, brownies, pancakes & more, made fresh daily from 5 PM to 10 PM.
 
-A small full-stack app: a **vanilla HTML/CSS/JavaScript** frontend (no build step) backed by a **Node.js + Express + SQLite** REST API with **JWT authentication** and **role-based access control**. It has two parts:
+A full-stack **Next.js** app: a TypeScript React frontend and API routes in one project, backed by **PostgreSQL** via **Prisma**, with **JWT authentication** and **role-based access control**. It has two parts:
 
 - **Public site** (customer-facing, mobile-first) — a browse-only showcase of the menu. There is **no online ordering or customer login**; all sales happen at the counter.
 - **Staff / Admin console** (desktop) — a **Billing / POS** for walk-in sales with shareable PDF receipts, plus an **admin dashboard** to manage the menu, users, coupons, and an audit log.
@@ -13,41 +13,41 @@ A small full-stack app: a **vanilla HTML/CSS/JavaScript** frontend (no build ste
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | HTML5, CSS3 (custom design system — no CSS framework), Vanilla JavaScript (ES6+, module-pattern IIFEs) |
-| **Backend** | Node.js, [Express](https://expressjs.com/) `^4.21` |
-| **Database** | [SQLite](https://www.sqlite.org/) via [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) `^11.3` (synchronous, single-file, WAL mode) |
-| **Auth** | [`jsonwebtoken`](https://github.com/auth0/node-jsonwebtoken) `^9.0` (JWT Bearer tokens, 7-day expiry) + [`bcryptjs`](https://github.com/dcodeIO/bcrypt.js) `^2.4` (password hashing) |
-| **API middleware** | [`cors`](https://github.com/expressjs/cors) `^2.8`, `express.json` |
+| **Frontend** | [Next.js](https://nextjs.org/) 15 (App Router) + TypeScript + React 19 |
+| **UI** | [Tailwind CSS](https://tailwindcss.com/) v4 + [shadcn/ui](https://ui.shadcn.com/), themed with the Thirst. design system |
+| **Backend** | Next.js API Routes (`/api/v1/*`) |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) 16 |
+| **ORM** | [Prisma](https://www.prisma.io/) |
+| **Auth** | [`jsonwebtoken`](https://github.com/auth0/node-jsonwebtoken) (JWT Bearer tokens, 7-day expiry) + [`bcryptjs`](https://github.com/dcodeIO/bcrypt.js) (password hashing) |
 | **Fonts** | Google Fonts — Pacifico, Playfair Display, Inter |
-| **Frontend libraries (CDN)** | [jsPDF](https://github.com/parallax/jsPDF) `2.5.1` + [html2canvas](https://html2canvas.hertzen.com/) `1.4.1` (receipt → PDF, billing page only) |
-| **PWA** | Web App Manifest + Service Worker (`sw.js`, cache-first shell, bypasses `/api/`) |
+| **PDF receipts** | [jsPDF](https://github.com/parallax/jsPDF) + [html2canvas](https://html2canvas.hertzen.com/) (billing page) |
+| **PWA** | Web App Manifest + Service Worker (`public/sw.js`, cache-first shell, bypasses `/api/`) |
+| **Local DB** | Docker Compose (`docker compose up -d db`) |
 | **Runtime** | Node.js **18+** |
-
-**No bundler or transpiler** — the browser runs the source directly, and in local dev the Express server also hosts the static site, so a single command runs the whole stack.
 
 ---
 
 ## ✨ What each part does
 
 ### 🌐 Public site (mobile-first)
-- **Home** (`index.html`) — hero, why-Thirst, popular treats (pulled live from the menu)
-- **Menu** (`menu.html`) — category filters, live search, veg-only toggle, sort (popularity / rating / price), and a read-only dish detail view
-- **About** (`about.html`) — story, values, outlet, contact & franchise enquiry forms
+- **Home** (`/`) — hero, why-Thirst, popular treats (pulled live from the menu)
+- **Menu** (`/menu`) — category filters, live search, veg-only toggle, sort (popularity / rating / price), and a read-only dish detail view
+- **About** (`/about`) — story, values, outlet, contact & franchise enquiry forms
 
-### 🧾 Staff — Billing / POS (`billing.html`, desktop)
+### 🧾 Staff — Billing / POS (`/billing`, desktop)
 - Build a walk-in bill from the live menu or **custom line items**
 - Auto-numbered invoices (`INV-YYYYMMDD-NNNN`), **5% GST**, discounts
 - Generate a **PDF receipt** and share it — **Send on WhatsApp**, **Download PDF**, or **Print** (isolated 80mm thermal layout)
 - View recent bills and re-open any receipt
 
-### 🛠️ Admin (`admin.html`, desktop)
+### 🛠️ Admin (`/admin/dashboard`, desktop)
 - **Dashboard** — today's bills & revenue, average rating, active coupons, weekly bills chart
 - **Menu Management** — add / edit / delete items, toggle availability
 - **User Management** — create & manage staff/admin accounts, enable/disable (soft-disable; can't disable the last admin)
 - **Coupons** — active coupon reference
 - **Audit Log** — every login, bill, menu edit, and user change recorded with actor, role, timestamp, and details
 
-Roles are **admin** and **staff** only — there is no customer account.
+Roles are **admin** and **staff** only — there is no customer account. The staff/admin login lives at **`/admin`**.
 
 ---
 
@@ -55,40 +55,34 @@ Roles are **admin** and **staff** only — there is no customer account.
 
 ### Prerequisites
 - **Node.js 18 or newer** (`node --version`)
+- **Docker** (for the local PostgreSQL database)
 
 ### Install & run
-The Express server serves both the API and the static site in local dev, so one process runs everything.
 
 ```bash
-cd server
-npm install     # express, better-sqlite3, bcryptjs, jsonwebtoken, cors
-npm run seed    # creates server/data/thirst.db and seeds the menu, coupons & bootstrap users
-npm start       # starts API + site at http://localhost:4000
+npm install
+docker compose up -d db     # start PostgreSQL 16 (localhost:5432)
+npx prisma migrate dev      # create the tables
+npm run seed                # seed the menu, coupons & bootstrap users
+npm run dev                 # → http://localhost:3000
 ```
 
-Then open **http://localhost:4000**. The staff/admin console is at **/admin**.
+Then open **http://localhost:3000**. The staff/admin console is at **/admin**.
 
 ### Resetting the database
-The database is a single file at `server/data/thirst.db`.
-- Delete it and re-run `npm run seed` for a clean slate.
-- Re-running `npm run seed` is **idempotent**; the menu is versioned (`MENU_VERSION` in `seed.js`) and re-seeds fully when bumped.
+- `docker compose down -v` removes the database volume; re-run migrate + seed for a clean slate.
+- Re-running `npm run seed` is **idempotent**; the menu is versioned (`MENU_VERSION` in `prisma/seed.ts`) and re-seeds fully when bumped.
 
 ### Configuration (environment variables)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `PORT` | `4000` | Port for the API + static site |
-| `NODE_ENV` | — | Set to `production` to serve API-only (frontend hosted separately) |
+| `DATABASE_URL` | local docker Postgres | PostgreSQL connection string |
 | `THIRST_JWT_SECRET` | random per-process | Fixed JWT signing secret — **set this in production** so sessions survive restarts |
 | `THIRST_ADMIN_EMAIL` | `admin@thirst.in` | Bootstrap admin email (seed) |
 | `THIRST_ADMIN_PASSWORD` | `ChangeMe@123` | Bootstrap admin password — **set this in production** |
 | `THIRST_STAFF_EMAIL` | `staff@thirst.in` | Bootstrap staff email (seed) |
 | `THIRST_STAFF_PASSWORD` | `ChangeMe@123` | Bootstrap staff password |
-
-```bash
-PORT=5000 THIRST_JWT_SECRET=your-long-random-secret \
-THIRST_ADMIN_PASSWORD=your-strong-admin-password npm start
-```
 
 > ⚠️ **Security:** the seed only creates the admin/staff accounts if they don't already exist. Always set `THIRST_ADMIN_PASSWORD` (and `THIRST_JWT_SECRET`) in production, and change the password after first login.
 
@@ -97,33 +91,29 @@ THIRST_ADMIN_PASSWORD=your-strong-admin-password npm start
 ## 📁 Project Structure
 
 ```
-├── index.html              # Home (public, mobile-first)
-├── menu.html               # Menu browse (filters, search, sort)
-├── about.html              # About, values, contact
-├── login.html              # Staff / admin login  (served at /admin)
-├── admin.html              # Admin console (dashboard, menu, users, audit, coupons)
-├── billing.html            # Staff Billing / POS — PDF receipts + sharing
-├── manifest.json           # PWA manifest
-├── sw.js                   # Service worker (caches shell, bypasses /api/)
-├── assets/
-│   ├── thirst-logo.png     # Brand logo (favicon, navbars, receipts)
-│   └── hero.jpg            # Home hero photo
-├── css/
-│   └── styles.css          # Design system + responsive breakpoints
-├── js/
-│   ├── data.js             # Frontend display constants (categories, promos, outlet, features)
-│   ├── api.js              # REST client for the backend (fetch + JWT)
-│   ├── auth.js             # Session management & role guards
-│   ├── app.js              # Shared UI utilities, validation, toasts, HTML escaping
-│   └── admin.js            # Admin console logic (menu, users, audit, coupons)
-└── server/                 # ── Backend (Node + Express + SQLite) ──
-    ├── server.js           # Express app: REST API + static host
-    ├── db.js               # SQLite connection + schema
-    ├── auth.js             # JWT + bcrypt helpers, auth/role middleware
-    ├── audit.js            # Audit-log writer
-    ├── seed.js             # Idempotent database seed (menu, coupons, users)
-    ├── package.json        # Backend dependencies & scripts
-    └── data/               # thirst.db lives here (gitignored)
+├── app/
+│   ├── layout.tsx            # Root layout: fonts, SEO, PWA registration
+│   ├── globals.css           # Tailwind + the Thirst. design system
+│   ├── page.tsx              # Home (public, mobile-first)
+│   ├── menu/                 # Menu browse (filters, search, sort)
+│   ├── about/                # About, values, contact
+│   ├── admin/                # Staff / admin login  (/admin)
+│   │   └── dashboard/        # Admin console (dashboard, menu, users, audit, coupons)
+│   ├── billing/              # Staff Billing / POS — PDF receipts + sharing
+│   └── api/v1/               # REST API route handlers (see API Reference)
+├── components/               # Navbar, Footer, DishCard, Modal, Reveal + shadcn/ui
+├── lib/
+│   ├── db.ts                 # Prisma client singleton
+│   ├── auth.ts               # JWT + bcrypt helpers, route-handler auth
+│   ├── audit.ts              # Audit-log writer
+│   ├── mappers.ts            # DB row → API shape
+│   └── client/               # Frontend: REST client, display constants, utilities
+├── prisma/
+│   ├── schema.prisma         # PostgreSQL schema
+│   └── seed.ts               # Idempotent database seed (menu, coupons, users)
+├── public/                   # Logo, hero photo, manifest.json, sw.js
+├── docker-compose.yml        # Local PostgreSQL 16
+└── render.yaml               # Render deploy (web service + Postgres)
 ```
 
 ---
@@ -144,13 +134,13 @@ All endpoints are under the **`/api/v1`** prefix. 🔒 = requires a valid token.
 | **Stats** | `GET /admin/stats` 🔒staff |
 | **Health** | `GET /health` |
 
-Role notes: `staff` endpoints are also open to `admin`. `DELETE /users/:id` is a **soft-disable** (`active = 0`) and cannot remove the last active admin.
+Role notes: `staff` endpoints are also open to `admin`. `DELETE /users/:id` is a **soft-disable** (`active = false`) and cannot remove the last active admin.
 
 ---
 
 ## 🗄️ Database Schema
 
-SQLite tables (see `server/db.js`):
+PostgreSQL tables (see `prisma/schema.prisma`):
 
 | Table | Purpose |
 |-------|---------|
@@ -165,11 +155,11 @@ SQLite tables (see `server/db.js`):
 
 ## 🍧 Menu & Categories
 
-Seeded from the current Thirst. menu (`server/seed.js`, versioned via `MENU_VERSION`):
+Seeded from the current Thirst. menu (`prisma/seed.ts`, versioned via `MENU_VERSION`):
 
 `Hot Chocolate` · `Crushers` · `Shakes` · `Waffles` · `Pancakes` · `Brownies & Cakes` · `Maggi` · `Combos`
 
-Menu **item photos** currently use stock image URLs as placeholders — replace the `image` field of each item (via Admin → Menu Management, or in `seed.js`) with real product photos for production.
+Menu **item photos** currently use stock image URLs as placeholders — replace the `image` field of each item (via Admin → Menu Management, or in `seed.ts`) with real product photos for production.
 
 ---
 
@@ -185,22 +175,24 @@ Menu **item photos** currently use stock image URLs as placeholders — replace 
 | Breakpoints | 480px · 768px · 1024px · 1440px |
 | Currency | Indian Rupee (₹), `en-IN` formatting |
 
-The public site is mobile-first and responsive; the POS and admin console are designed for desktop use. Dynamic values rendered into the page are HTML-escaped (`App.escapeHtml`).
+The tokens live in `app/globals.css` — both as CSS variables (`--color-primary`, …) and as a Tailwind `@theme`, so utilities like `bg-primary` and `font-display` match the brand. The public site is mobile-first and responsive; the POS and admin console are designed for desktop use.
 
 ---
 
 ## 📲 PWA / Offline
 
-- Installable via `manifest.json` (icons, theme color, app shortcuts)
-- `sw.js` uses a cache-first strategy for the app shell and **bypasses `/api/`** requests so data is always fresh
+- Installable via `public/manifest.json` (icons, theme color, app shortcuts)
+- `public/sw.js` uses a cache-first strategy for the app shell and **bypasses `/api/`** requests so data is always fresh
 - HTTPS is required for install / service worker in production
 
 ---
 
 ## ☁️ Deployment
 
-- **Frontend** — static hosting (e.g. Vercel; see `vercel.json` for the clean-URL rewrites, including `/admin` → `login.html`).
-- **Backend** — Node service (e.g. Render; see `render.yaml`). Set `NODE_ENV=production`, `THIRST_JWT_SECRET`, and `THIRST_ADMIN_PASSWORD`. In production the API runs on its own origin; the frontend points at it via `window.THIRST_API` or the built-in fallback in `js/api.js`.
+One Next.js app serves both the site and the API — deploy it anywhere Next.js runs, plus a hosted PostgreSQL:
+
+- **Vercel** — import the repo, add `DATABASE_URL` (e.g. [Neon](https://neon.tech/) / [Supabase](https://supabase.com/) / Render Postgres), `THIRST_JWT_SECRET`, and `THIRST_ADMIN_PASSWORD`. Run `npx prisma migrate deploy && npm run seed` against the production database once.
+- **Render** — `render.yaml` provisions the web service **and** a managed PostgreSQL database; migrations run on every deploy and the seed is idempotent.
 
 ---
 

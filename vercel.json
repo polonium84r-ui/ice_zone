@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "rewrites": [
-    { "source": "/menu", "destination": "/menu.html" },
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/admin", "destination": "/login.html" },
-    { "source": "/billing", "destination": "/billing.html" }
-  ]
-}

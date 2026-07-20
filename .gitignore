@@ -28,6 +28,11 @@ build/
 *.min.js
 *.min.css
 
+# Next.js
+.next/
+out/
+next-env.d.ts
+
 # Environment files
 .env
 .env.local
