@@ -13,6 +13,7 @@ export const CATEGORIES = [
   "Brownies & Cakes",
   "Maggi",
   "Combos",
+  "Students Special",
 ];
 
 export const PROMO_OFFERS = [
@@ -43,5 +44,8 @@ export const STORE = {
   address: "No. 01, Siva Vishnu Kovil Street, Kakkalur, Thiruvallur – 602 001",
   phone: "+91 85250 03546",
   fssai: "22425478001152",
-  gstRate: 0.05,
+  // Thirst. is not GST-registered (Udyam UDYAM-TN-24-0161809 declares no GSTIN,
+  // and turnover sits under the registration threshold), so no tax is collected.
+  // Set this to a rate only if a GSTIN is obtained.
+  gstRate: 0,
 };

@@ -1,3 +1,4 @@
 export async function GET() {
-  return Response.json({ ok: true, time: new Date().toISOString() });
+  // Only expose a simple status — no server time or internal details
+  return Response.json({ ok: true });
 }

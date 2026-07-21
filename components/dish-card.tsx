@@ -40,10 +40,6 @@ export function DishCard({
           ></span>
         </div>
         {!compact && <p className="dish-desc">{item.description}</p>}
-        <div className="dish-rating">
-          <span className="star">★</span> {item.rating}{" "}
-          <span className="count">({item.reviewCount})</span>
-        </div>
         <div className="dish-footer">
           <span className="dish-price">{formatCurrency(item.price)}</span>
         </div>

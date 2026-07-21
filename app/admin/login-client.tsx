@@ -50,7 +50,7 @@ export default function LoginPage() {
       setPasswordError("This field is required");
       valid = false;
     } else if (!validatePassword(password)) {
-      setPasswordError("Password must be at least 6 characters");
+      setPasswordError("Password must be at least 8 characters");
       valid = false;
     } else setPasswordError("");
     if (!valid) return;

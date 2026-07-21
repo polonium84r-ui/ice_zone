@@ -23,7 +23,14 @@ export default function HomePage() {
   useEffect(() => {
     getMenu()
       .then((menu) => {
-        const top = [...menu].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 4);
+        const top = [...menu]
+          .sort((a, b) => {
+            if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount;
+            const aWeight = a.tags?.includes("bestseller") || a.tags?.includes("signature") ? 2 : a.tags?.includes("popular") ? 1 : 0;
+            const bWeight = b.tags?.includes("bestseller") || b.tags?.includes("signature") ? 2 : b.tags?.includes("popular") ? 1 : 0;
+            return bWeight - aWeight;
+          })
+          .slice(0, 4);
         setPopular(top);
       })
       .catch(() => setMenuError(true));
@@ -40,11 +47,7 @@ export default function HomePage() {
 
   return (
     <>
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
-
-      <Navbar transparent activePage="index" showMenuButton />
+      <Navbar transparent activePage="index" />
 
       {/* Hero */}
       <header className="hero" id="main-content">

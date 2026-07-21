@@ -1,35 +1,69 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { safeError } from "@/lib/security";
 
 export async function GET(req: Request) {
   const user = await requireAuth(req, "staff");
   if (user instanceof Response) return user;
 
-  const bills = await prisma.bill.findMany({ select: { total: true, createdAt: true } });
-  const menu = await prisma.menuItem.findMany({ select: { rating: true } });
-  const coupons = await prisma.coupon.findMany({ select: { active: true } });
-  const staffCount = await prisma.user.count({ where: { role: "staff", active: true } });
+  try {
+    // Use DB-level date filtering instead of loading all bills into memory
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
 
-  const todayStr = new Date().toDateString();
-  const isToday = (d: Date) => new Date(d).toDateString() === todayStr;
-  const todayBills = bills.filter((bl) => isToday(bl.createdAt));
-  const todayRevenue = todayBills.reduce((s, bl) => s + bl.total, 0);
-  const avgRating = menu.length
-    ? Math.round((menu.reduce((s, m) => s + m.rating, 0) / menu.length) * 10) / 10
-    : 0;
+    // Today's bills — filtered at the database level
+    const todayBills = await prisma.bill.findMany({
+      where: {
+        createdAt: { gte: todayStart, lte: todayEnd },
+      },
+      select: { total: true },
+    });
+    const todayRevenue = todayBills.reduce((s, bl) => s + bl.total, 0);
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const weeklyBills = weekDays.map((day, i) => ({
-    day,
-    count: bills.filter((bl) => new Date(bl.createdAt).getDay() === i).length,
-  }));
+    // Average rating — aggregated at DB level
+    const ratingAgg = await prisma.menuItem.aggregate({
+      _avg: { rating: true },
+    });
+    const avgRating = ratingAgg._avg.rating
+      ? Math.round(ratingAgg._avg.rating * 10) / 10
+      : 0;
 
-  return Response.json({
-    todayBills: todayBills.length,
-    todayRevenue,
-    avgRating,
-    activeCoupons: coupons.filter((c) => c.active).length,
-    staffCount,
-    weeklyBills,
-  });
+    // Active coupons count
+    const activeCoupons = await prisma.coupon.count({ where: { active: true } });
+
+    // Staff count
+    const staffCount = await prisma.user.count({
+      where: { role: "staff", active: true },
+    });
+
+    // Weekly bills — use DB-level filtering for the past 7 days
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 6);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekBills = await prisma.bill.findMany({
+      where: { createdAt: { gte: weekStart } },
+      select: { createdAt: true },
+    });
+
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const weeklyBills = weekDays.map((day, i) => ({
+      day,
+      count: weekBills.filter((bl) => new Date(bl.createdAt).getDay() === i)
+        .length,
+    }));
+
+    return Response.json({
+      todayBills: todayBills.length,
+      todayRevenue: Math.round(todayRevenue * 100) / 100,
+      avgRating,
+      activeCoupons,
+      staffCount,
+      weeklyBills,
+    });
+  } catch {
+    return safeError(500, "Failed to retrieve statistics.");
+  }
 }

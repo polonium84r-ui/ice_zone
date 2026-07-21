@@ -50,9 +50,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        {/* PWA service worker */}
-        <Script id="sw-register" strategy="afterInteractive">
-          {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(() => {}); }`}
+        {/* No caching service worker is registered — the old one caused stale
+            HTML/asset bugs (blank / unstyled pages across dev restarts). This
+            script proactively removes any worker + caches still left in a
+            visitor's browser. The kill-switch /sw.js finishes the job for
+            browsers that had the old worker actively controlling the page. */}
+        <Script id="sw-cleanup" strategy="afterInteractive">
+          {`if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations()
+              .then((regs) => regs.forEach((r) => r.unregister()))
+              .catch(() => {});
+            if (window.caches) {
+              caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+            }
+          }`}
         </Script>
       </body>
     </html>

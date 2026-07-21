@@ -26,11 +26,11 @@ const IMG = {
 };
 
 // Bump this when the menu below changes to push it to existing databases.
-const MENU_VERSION = 2;
+const MENU_VERSION = 4;
 
 type MenuSeed = {
   name: string; category: string; description: string; price: number;
-  image: string; rating: number; review_count: number; is_veg: number; tags: string[];
+  image: string; rating?: number; review_count?: number; is_veg: number; tags: string[];
 };
 
 const MENU: MenuSeed[] = [
@@ -115,6 +115,13 @@ const MENU: MenuSeed[] = [
   { name: "6 Pcs Pancake + Mini Brownie + Crusher", category: "Combos", description: "Students special combo — 6 pcs pancake, mini brownie & a crusher (any flavour).", price: 99, image: IMG.pc1, rating: 4.7, review_count: 130, is_veg: 1, tags: ["combo", "student"] },
   { name: "Thick Shake + Mini Waffle", category: "Combos", description: "Students special combo — a thick shake with a mini waffle (any flavour).", price: 99, image: IMG.ms1, rating: 4.6, review_count: 120, is_veg: 1, tags: ["combo", "student"] },
   { name: "Mini Hot Chocolate + Mini Waffle", category: "Combos", description: "Students special combo — mini hot chocolate with a mini waffle (any flavour).", price: 65, image: IMG.hc2, rating: 4.6, review_count: 100, is_veg: 1, tags: ["combo", "student"] },
+
+  // ---- Students Special (individual items, flat 50% off pricing) ----
+  { name: "Pancake (8 pcs) — Student", category: "Students Special", description: "Eight fluffy pancakes in any flavour, at student pricing.", price: 40, image: IMG.pc1, rating: 4.6, review_count: 95, is_veg: 1, tags: ["student"] },
+  { name: "Mini Waffle — Student", category: "Students Special", description: "A mini waffle in any flavour, at student pricing.", price: 35, image: IMG.wf1, rating: 4.6, review_count: 90, is_veg: 1, tags: ["student"] },
+  { name: "Mini Brownie — Student", category: "Students Special", description: "A warm mini brownie, at student pricing.", price: 35, image: IMG.br1, rating: 4.6, review_count: 85, is_veg: 1, tags: ["student"] },
+  { name: "Crusher — Student", category: "Students Special", description: "Any-flavour crusher over crushed ice, at student pricing.", price: 30, image: IMG.mango, rating: 4.5, review_count: 80, is_veg: 1, tags: ["student"] },
+  { name: "Classic Hot Chocolate — Student", category: "Students Special", description: "Our classic hot chocolate, at student pricing.", price: 25, image: IMG.hc1, rating: 4.7, review_count: 105, is_veg: 1, tags: ["student"] },
 ];
 
 const COUPONS = [
@@ -161,8 +168,8 @@ async function main() {
           description: m.description,
           price: m.price,
           image: m.image,
-          rating: m.rating,
-          reviewCount: m.review_count,
+          rating: m.rating ?? 5.0,
+          reviewCount: 0,
           isVeg: !!m.is_veg,
           tags: m.tags,
           available: true,

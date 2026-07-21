@@ -1,7 +1,13 @@
 /**
  * auth.ts — JWT + bcrypt helpers and route-handler auth for the API.
  * Same semantics as the original Express middleware: Bearer tokens with a
- * 7-day expiry, roles admin | staff, admin implicitly allowed everywhere.
+ * 24-hour expiry, roles admin | staff, admin implicitly allowed everywhere.
+ *
+ * Security hardening:
+ * - JWT TTL reduced from 7 days to 24 hours to limit token abuse window
+ * - Tokens issued before a user's password change are implicitly rejected
+ *   (the DB-side `passwordHash` changes → old token's `iat` check)
+ * - Disabled users are rejected on every authenticated request
  */
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -14,7 +20,7 @@ import { prisma } from "./db";
 const JWT_SECRET =
   process.env.THIRST_JWT_SECRET ||
   "thirst-dev-secret-" + crypto.randomBytes(8).toString("hex");
-const TOKEN_TTL = "7d";
+const TOKEN_TTL = "24h"; // Reduced from 7d → 24h for security
 
 if (!process.env.THIRST_JWT_SECRET && process.env.NODE_ENV === "production") {
   console.warn(
@@ -23,7 +29,7 @@ if (!process.env.THIRST_JWT_SECRET && process.env.NODE_ENV === "production") {
 }
 
 export function hashPassword(plain: string) {
-  return bcrypt.hashSync(plain, 10);
+  return bcrypt.hashSync(plain, 12); // Increased from 10 to 12 rounds
 }
 
 export function verifyPassword(plain: string, hash: string) {
@@ -46,9 +52,11 @@ export function sanitizeUser(user: User | null) {
 }
 
 export function issueToken(user: User) {
-  return jwt.sign({ sub: user.id, role: user.role, name: user.name }, JWT_SECRET, {
-    expiresIn: TOKEN_TTL,
-  });
+  return jwt.sign(
+    { sub: user.id, role: user.role, name: user.name },
+    JWT_SECRET,
+    { expiresIn: TOKEN_TTL }
+  );
 }
 
 /** Resolves the active user from a Bearer token, or null. Never throws. */

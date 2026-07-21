@@ -3,6 +3,7 @@
  */
 import type { User } from "@prisma/client";
 import { prisma } from "./db";
+import { extractClientIp, truncate } from "./security";
 
 type AuditOpts = {
   entityType?: string | null;
@@ -21,20 +22,26 @@ export async function auditLog(
   { entityType = null, entityId = null, details = null }: AuditOpts = {}
 ) {
   try {
+    // Use the security module's IP extraction (validated, sanitised)
+    const ip = req ? extractClientIp(req) : null;
+
+    // Truncate details to prevent excessively large audit entries
+    const detailsStr = details
+      ? typeof details === "string"
+        ? truncate(details, 2000)
+        : truncate(JSON.stringify(details), 2000)
+      : null;
+
     await prisma.auditLog.create({
       data: {
         userId: user?.id ?? null,
-        userName: user?.name ?? "anonymous",
+        userName: truncate(user?.name ?? "anonymous", 100),
         userRole: user?.role ?? "guest",
-        action,
-        entityType,
-        entityId: entityId != null ? String(entityId) : null,
-        details: details
-          ? typeof details === "string"
-            ? details
-            : JSON.stringify(details)
-          : null,
-        ip: req ? req.headers.get("x-forwarded-for") : null,
+        action: truncate(action, 100),
+        entityType: entityType ? truncate(entityType, 50) : null,
+        entityId: entityId != null ? truncate(String(entityId), 100) : null,
+        details: detailsStr,
+        ip,
       },
     });
   } catch (err) {

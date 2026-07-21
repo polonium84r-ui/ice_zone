@@ -2,7 +2,7 @@
 
 /**
  * Billing / POS — port of billing.html: build a walk-in bill from the live
- * menu or custom line items, GST + discounts, auto-numbered invoices, and a
+ * menu or custom line items, discounts, auto-numbered invoices, and a
  * shareable receipt (WhatsApp / PDF / 80mm print). Staff & admin only.
  */
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -397,10 +397,12 @@ export default function BillingPage() {
               <span>Discount</span>
               <span>-{money(totals.discount)}</span>
             </div>
-            <div className="row">
-              <span>GST (5%)</span>
-              <span>{money(totals.tax)}</span>
-            </div>
+            {totals.tax > 0 && (
+              <div className="row">
+                <span>GST</span>
+                <span>{money(totals.tax)}</span>
+              </div>
+            )}
             <div className="row grand">
               <span>Total</span>
               <span>{money(totals.total)}</span>

@@ -50,6 +50,16 @@ export function validatePhone(phone: string) {
   return /^[6-9]\d{9}$/.test(phone.replace(/\s/g, ""));
 }
 
-export function validatePassword(password: string) {
-  return password.length >= 6;
+export function validatePassword(password: string): boolean {
+  if (password.length < 8) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/\d/.test(password)) return false;
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) return false;
+  return true;
+}
+
+/** Returns a human-readable description of password requirements. */
+export function passwordRequirements(): string {
+  return "At least 8 characters with uppercase, lowercase, number, and special character";
 }

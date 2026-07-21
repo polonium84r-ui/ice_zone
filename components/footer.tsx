@@ -5,6 +5,7 @@
  * appears on the pages that had it (menu, about).
  */
 import Link from "next/link";
+import { Instagram, Youtube } from "lucide-react";
 import { showToast } from "@/lib/client/app";
 
 export function Footer({ newsletter = false }: { newsletter?: boolean }) {
@@ -29,7 +30,7 @@ export function Footer({ newsletter = false }: { newsletter?: boolean }) {
                 rel="noopener"
                 aria-label="Instagram"
               >
-                📷
+                <Instagram size={18} strokeWidth={2} />
               </a>
               <a
                 href="https://youtube.com/@thirstfreshzz"
@@ -37,7 +38,7 @@ export function Footer({ newsletter = false }: { newsletter?: boolean }) {
                 rel="noopener"
                 aria-label="YouTube"
               >
-                ▶️
+                <Youtube size={18} strokeWidth={2} />
               </a>
             </div>
           </div>

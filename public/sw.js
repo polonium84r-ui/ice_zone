@@ -1,102 +1,48 @@
 /**
- * Service Worker for Thirst.
- * Provides offline support and caching strategies
+ * Kill-switch Service Worker.
+ *
+ * The previous version of this file was a cache-first Service Worker. In
+ * development it served stale HTML that referenced JS/CSS chunk files from an
+ * earlier dev-server run (chunk hashes change on every restart), which showed
+ * up as a blank or completely unstyled page that a normal refresh could not
+ * fix — the worker just kept serving the poisoned cache.
+ *
+ * This replacement intentionally does nothing but remove itself and any caches
+ * a previous version created. Browsers that still have the old worker
+ * registered call `register('/sw.js')` from the previously-cached page, which
+ * makes the browser fetch THIS file, see it changed, install it, and run the
+ * cleanup below — healing automatically on the next visit. After it
+ * unregisters, no Service Worker controls the site and pages load normally
+ * straight from the server.
+ *
+ * If a real offline/PWA worker is wanted later, it must be scoped to skip HTML
+ * navigations in development (or be disabled entirely when NODE_ENV !== production).
  */
+self.addEventListener("install", () => self.skipWaiting());
 
-const CACHE_NAME = 'thirst-v4.0.0';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/menu',
-  '/about',
-  '/manifest.json',
-  '/assets/thirst-logo.png',
-  '/assets/hero.jpg'
-];
-
-// Install event - cache assets
-self.addEventListener('install', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching app shell');
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
-      .then(() => self.skipWaiting())
-  );
-});
-
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames
-            .filter((name) => name !== CACHE_NAME)
-            .map((name) => {
-              console.log('[SW] Deleting old cache:', name);
-              return caches.delete(name);
-            })
-        );
-      })
-      .then(() => self.clients.claim())
-  );
-});
-
-// Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
-
-  // Never cache API traffic — always hit the network for live data
-  if (event.request.url.includes('/api/')) return;
-
-  // Skip chrome extensions and external requests
-  if (!event.request.url.startsWith(self.location.origin)) return;
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached version and update in background
-          fetchAndCache(event.request);
-          return cachedResponse;
-        }
-
-        // Not in cache, fetch from network
-        return fetchAndCache(event.request);
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match('/');
-      })
-  );
-});
-
-// Helper function to fetch and cache
-function fetchAndCache(request) {
-  return fetch(request)
-    .then((response) => {
-      // Don't cache non-successful responses
-      if (!response || response.status !== 200 || response.type === 'error') {
-        return response;
+    (async () => {
+      // Drop every cache this origin's worker ever created.
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      } catch {
+        /* ignore */
       }
-
-      // Clone the response
-      const responseToCache = response.clone();
-
-      caches.open(CACHE_NAME)
-        .then((cache) => {
-          cache.put(request, responseToCache);
-        });
-
-      return response;
-    });
-}
-
-// Listen for messages from the client
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+      // Remove this worker so nothing intercepts future requests.
+      try {
+        await self.registration.unregister();
+      } catch {
+        /* ignore */
+      }
+      // Force every open tab to reload from the network, now un-poisoned.
+      try {
+        const clients = await self.clients.matchAll({ type: "window" });
+        clients.forEach((client) => client.navigate(client.url));
+      } catch {
+        /* ignore */
+      }
+    })()
+  );
 });

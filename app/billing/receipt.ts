@@ -50,7 +50,7 @@ export function buildReceiptHTML(b: Bill) {
       <div class="receipt-totals">
         <div class="rt"><span>Subtotal</span><span>${money(b.subtotal)}</span></div>
         ${b.discount > 0 ? `<div class="rt"><span>Discount</span><span>-${money(b.discount)}</span></div>` : ""}
-        <div class="rt"><span>GST (5%)</span><span>${money(b.tax)}</span></div>
+        ${b.tax > 0 ? `<div class="rt"><span>GST</span><span>${money(b.tax)}</span></div>` : ""}
         <div class="rt grand"><span>TOTAL</span><span>${money(b.total)}</span></div>
       </div>
       <div class="receipt-foot">
