@@ -1,15 +1,13 @@
 services:
   - type: web
-    name: ice-zone-api
+    name: ice-zone
     runtime: node
-    buildCommand: npm install && npx prisma generate && npx prisma db push && npm run build
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run seed && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:./prisma/dev.db
-      - key: NEXTAUTH_SECRET
-        generateValue: true
-      - key: NEXTAUTH_URL
+        sync: false
+      - key: THIRST_JWT_SECRET
         sync: false
