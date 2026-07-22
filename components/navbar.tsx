@@ -1,11 +1,13 @@
 "use client";
 
 /**
- * Navbar + mobile drawer — port of the original navbar (app.js initNavbar /
- * initHamburger). `transparent` pages (home) become solid after 50px scroll.
+ * Site header. Non-sticky — it sits at the top of the page and scrolls away
+ * with the content. On `transparent` pages (home) it overlays the hero with
+ * light text; elsewhere it renders solid. Navigation is a simple inline row of
+ * links at every screen size (no mobile hamburger/drawer).
  */
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const LINKS = [
   { href: "/", label: "Home", page: "index" },
@@ -16,84 +18,35 @@ const LINKS = [
 export function Navbar({
   transparent = false,
   activePage = "",
-  showMenuButton = false,
 }: {
   transparent?: boolean;
   activePage?: string;
-  showMenuButton?: boolean;
 }) {
-  const [scrolled, setScrolled] = useState(!transparent);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  useEffect(() => {
-    if (!transparent) return;
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll);
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [transparent]);
-
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [drawerOpen]);
-
-  const navClass = transparent
-    ? `navbar ${scrolled ? "solid scrolled" : "transparent"}`
-    : "navbar solid scrolled";
+  // Non-sticky header: the transparent (home) variant overlays the hero and
+  // simply scrolls out of view, so there is no scroll-to-solid transition.
+  const navClass = transparent ? "navbar transparent" : "navbar solid scrolled";
 
   return (
-    <>
-      <nav className={navClass} role="navigation" aria-label="Main navigation">
-        <div className="container">
-          <Link href="/" className="navbar-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/thirst-logo.png" alt="Thirst." className="navbar-logo-img" />
-          </Link>
-          <div className="nav-links">
-            {LINKS.map((l) => (
-              <Link key={l.page} href={l.href} className={activePage === l.page ? "active" : ""}>
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div className="nav-actions">
-            {showMenuButton && (
-              <Link href="/menu" className="btn btn-primary btn-sm order-nav-btn">
-                View Menu
-              </Link>
-            )}
-            <div
-              className={`hamburger ${drawerOpen ? "active" : ""}`}
-              aria-label="Menu toggle"
-              onClick={() => setDrawerOpen((o) => !o)}
-            >
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </div>
+    <nav className={navClass} role="navigation" aria-label="Main navigation">
+      <div className="container">
+        <Link href="/" className="navbar-logo">
+          <Image
+            src="/assets/thirst-logo.png"
+            alt="Thirst."
+            width={120}
+            height={120}
+            className="navbar-logo-img"
+            priority
+          />
+        </Link>
+        <div className="nav-links">
+          {LINKS.map((l) => (
+            <Link key={l.page} href={l.href} className={activePage === l.page ? "active" : ""}>
+              {l.label}
+            </Link>
+          ))}
         </div>
-      </nav>
-
-      <div
-        className={`mobile-drawer-overlay ${drawerOpen ? "open" : ""}`}
-        onClick={() => setDrawerOpen(false)}
-      ></div>
-      <div className={`mobile-drawer ${drawerOpen ? "open" : ""}`}>
-        {LINKS.map((l) => (
-          <Link
-            key={l.page}
-            href={l.href}
-            className={activePage === l.page ? "active" : ""}
-            onClick={() => setDrawerOpen(false)}
-          >
-            {l.label}
-          </Link>
-        ))}
       </div>
-    </>
+    </nav>
   );
 }

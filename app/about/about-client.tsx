@@ -1,16 +1,20 @@
 "use client";
 
 /**
- * About — port of about.html: story, mission/vision, values, outlets,
- * contact form, and the franchise enquiry modal.
+ * About — story, mission/vision, franchise CTA, and a combined visit/contact
+ * panel (single flagship store today, but the info list scales cleanly if
+ * more outlets are added later) plus the franchise enquiry modal.
  */
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Modal } from "@/components/modal";
 import { Reveal } from "@/components/reveal";
 import { OUTLETS } from "@/lib/client/data";
 import { showToast, validateEmail, validatePhone } from "@/lib/client/app";
+
+const FLAGSHIP = OUTLETS[0];
 
 export default function AboutPage() {
   const [franchiseOpen, setFranchiseOpen] = useState(false);
@@ -49,12 +53,16 @@ export default function AboutPage() {
 
       {/* Hero */}
       <section className="about-hero">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1504387432042-8aca549e4729?w=1920&q=80"
-          alt="Handcrafted waffles and desserts"
+        <Image
+          src="https://images.unsplash.com/photo-1754444217186-4cf13df89ad8?w=1920&q=80"
+          alt="Loaded waffles with whipped cream, chocolate drizzle and strawberries"
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: "cover", objectPosition: "center 32%" }}
         />
         <div className="about-hero-overlay">
+          <span className="story-badge">🍫 One for Living</span>
           <h1>Our Story</h1>
           <p style={{ marginTop: 12, opacity: 0.9 }}>
             Handcrafted hot chocolate, waffles &amp; desserts — one for living.
@@ -67,44 +75,57 @@ export default function AboutPage() {
         <div className="container">
           <Reveal className="story-section">
             <div>
-              <h2 className="section-title" style={{ textAlign: "left" }}>
+              <span className="section-eyebrow">Our Journey</span>
+              <h2 className="section-title" style={{ textAlign: "left", marginBottom: 20 }}>
                 Made With Love
               </h2>
-              <p
-                style={{
-                  marginBottom: 16,
-                  lineHeight: 1.8,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                Thirst. began with a simple idea — that a dessert can be more than a snack;
-                it can be a little moment of joy. We opened our doors in Thiruvallur to
-                serve handcrafted hot chocolate, waffles, shakes and desserts made with
-                premium ingredients.
-              </p>
-              <p
-                style={{
-                  marginBottom: 16,
-                  lineHeight: 1.8,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                Everything is made fresh, to order — from our signature hot chocolates to
-                loaded waffles, thick shakes, brownies and pancakes. No shortcuts, just
-                flavours we would happily serve our own family.
-              </p>
-              <p style={{ lineHeight: 1.8, color: "var(--color-text-muted)" }}>
-                What started as one counter has grown into a much-loved neighbourhood spot,
-                open daily from 5 PM to 10 PM — and this is only the beginning of our sweet
-                story.
-              </p>
+              <div className="story-copy">
+                <p>
+                  Thirst. began with a simple idea — that a dessert can be more than a
+                  snack; it can be a little moment of joy. We opened our doors in
+                  Thiruvallur to serve handcrafted hot chocolate, waffles, shakes and
+                  desserts made with premium ingredients.
+                </p>
+                <p>
+                  Everything is made fresh, to order — from our signature hot chocolates
+                  to loaded waffles, thick shakes, brownies and pancakes. No shortcuts,
+                  just flavours we would happily serve our own family.
+                </p>
+                <p>
+                  What started as one counter has grown into a much-loved neighbourhood
+                  spot, open daily from 5 PM to 10 PM — and this is only the beginning of
+                  our sweet story.
+                </p>
+              </div>
+              <div className="story-highlights">
+                <span className="highlight-chip">
+                  <span className="icon">🍫</span> Handcrafted Daily
+                </span>
+                <span className="highlight-chip">
+                  <span className="icon">🌟</span> Premium Ingredients
+                </span>
+                <span className="highlight-chip">
+                  <span className="icon">🕔</span> Fresh, 5–10 PM
+                </span>
+              </div>
             </div>
             <div className="story-image">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=800&q=80"
                 alt="Hot chocolate being poured"
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
               />
+              <div className="story-image-badge">
+                <span className="story-image-badge-icon" aria-hidden="true">
+                  🤝
+                </span>
+                <div>
+                  <strong>Handmade, Always</strong>
+                  <p>No shortcuts — just real flavour, poured fresh every day.</p>
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>
@@ -113,8 +134,20 @@ export default function AboutPage() {
       {/* Mission & Vision */}
       <section className="section" style={{ background: "var(--color-surface)" }}>
         <div className="container">
+          <Reveal>
+            <span className="section-eyebrow text-center">What Drives Us</span>
+            <h2 className="section-title">Our Purpose</h2>
+          </Reveal>
+          <Reveal>
+            <p className="section-subtitle">
+              The principles guiding everything we make, cup by cup.
+            </p>
+          </Reveal>
           <Reveal className="mission-grid">
             <div className="mission-card">
+              <div className="mission-card-icon" aria-hidden="true">
+                🎯
+              </div>
               <h3>Our Mission</h3>
               <p style={{ marginTop: 12, color: "var(--color-text-muted)", lineHeight: 1.7 }}>
                 To craft joyful desserts using premium ingredients — handmade fresh to
@@ -123,6 +156,9 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="mission-card" style={{ borderLeftColor: "var(--color-accent)" }}>
+              <div className="mission-card-icon" aria-hidden="true">
+                🌟
+              </div>
               <h3>Our Vision</h3>
               <p style={{ marginTop: 12, color: "var(--color-text-muted)", lineHeight: 1.7 }}>
                 To become the most-loved dessert brand in the region — where every treat
@@ -134,94 +170,78 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Values */}
+      {/* Franchise CTA */}
       <section className="section">
         <div className="container">
-          <Reveal className="values-strip">
-            <div className="value-item">
-              <div className="icon">🏆</div>
-              <h3>Quality</h3>
-              <p>Premium ingredients, zero shortcuts, every single time.</p>
+          <Reveal className="franchise-cta">
+            <div>
+              <h2>Bring Thirst. to Your City</h2>
+              <p>
+                We&apos;re growing — join our family of dessert cafés and bring
+                handcrafted hot chocolate, waffles &amp; shakes to your neighbourhood.
+              </p>
             </div>
-            <div className="value-item">
-              <div className="icon">🧼</div>
-              <h3>Hygiene</h3>
-              <p>FSSAI certified kitchens with 5-star cleanliness standards.</p>
-            </div>
-            <div className="value-item">
-              <div className="icon">🤝</div>
-              <h3>Community</h3>
-              <p>Supporting local farmers and giving back to our neighborhoods.</p>
-            </div>
-            <div className="value-item">
-              <div className="icon">💡</div>
-              <h3>Innovation</h3>
-              <p>Blending tradition with technology for a seamless experience.</p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Outlets */}
-      <section className="section" style={{ background: "var(--color-surface)" }}>
-        <div className="container">
-          <Reveal>
-            <h2 className="section-title">Our Outlets</h2>
-          </Reveal>
-          <Reveal>
-            <p className="section-subtitle">
-              Visit us at any of our stores around Thiruvallur & Chennai.
-            </p>
-          </Reveal>
-          <div className="outlet-grid" id="outlet-grid">
-            {OUTLETS.map((o) => (
-              <Reveal key={o.city} className="outlet-card">
-                <h3>{o.city}</h3>
-                <p>📍 {o.address}</p>
-                <p>📞 {o.phone}</p>
-                <p>🕐 {o.hours}</p>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal className="text-center mt-3">
-            <button className="btn btn-accent" onClick={() => setFranchiseOpen(true)}>
+            <button
+              className="btn btn-accent btn-lg"
+              onClick={() => setFranchiseOpen(true)}
+            >
               Franchise Enquiry
             </button>
           </Reveal>
         </div>
       </section>
 
-      {/* Contact */}
+      {/* Visit & Connect */}
       <section className="section">
         <div className="container">
           <Reveal>
-            <h2 className="section-title">Contact Us</h2>
+            <h2 className="section-title">Visit Us</h2>
           </Reveal>
           <Reveal>
-            <p className="section-subtitle">We&apos;d love to hear from you.</p>
+            <p className="section-subtitle">
+              Drop by our flagship store, or send us a message — we&apos;d love to hear
+              from you.
+            </p>
           </Reveal>
-          <Reveal className="contact-grid">
-            <div>
-              <h3 style={{ marginBottom: 16 }}>Get in Touch</h3>
-              <p style={{ marginBottom: 8 }}>
-                <strong>Flagship Store</strong>
-              </p>
-              <p style={{ color: "var(--color-text-muted)", marginBottom: 16 }}>
-                No. 01, Siva Vishnu Kovil Street, Kakkalur, Thiruvallur – 602 001
-              </p>
-              <p style={{ marginBottom: 8 }}>📞 +91 85250 03546</p>
-              <p style={{ marginBottom: 8 }}>
-                📷{" "}
-                <a
-                  href="https://www.instagram.com/thirst_fresh"
-                  target="_blank"
-                  rel="noopener"
-                  style={{ color: "inherit" }}
-                >
-                  @thirst_fresh
-                </a>
-              </p>
-              <p style={{ marginBottom: 24 }}>✉️ thirst.freshchennai@gmail.com</p>
+          <Reveal className="visit-panel">
+            <div className="visit-info">
+              <h3>{FLAGSHIP.city}</h3>
+              <p className="visit-subtitle">Come say hi in person.</p>
+
+              <div className="visit-info-list">
+                <div className="visit-info-row">
+                  <span className="icon" aria-hidden="true">
+                    📍
+                  </span>
+                  <span>{FLAGSHIP.address}</span>
+                </div>
+                <div className="visit-info-row">
+                  <span className="icon" aria-hidden="true">
+                    📞
+                  </span>
+                  <a href={`tel:${FLAGSHIP.phone.replace(/\s+/g, "")}`}>{FLAGSHIP.phone}</a>
+                </div>
+                <div className="visit-info-row">
+                  <span className="icon" aria-hidden="true">
+                    📷
+                  </span>
+                  <a
+                    href="https://www.instagram.com/thirst_fresh"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    @thirst_fresh
+                  </a>
+                </div>
+                <div className="visit-info-row">
+                  <span className="icon" aria-hidden="true">
+                    ✉️
+                  </span>
+                  <a href="mailto:thirst.freshchennai@gmail.com">
+                    thirst.freshchennai@gmail.com
+                  </a>
+                </div>
+              </div>
 
               <h4 style={{ marginBottom: 12, fontFamily: "var(--font-body)" }}>
                 Store Hours
@@ -230,7 +250,7 @@ export default function AboutPage() {
                 <tbody>
                   <tr>
                     <td>Open Daily</td>
-                    <td>5:00 PM – 10:00 PM</td>
+                    <td>{FLAGSHIP.hours}</td>
                   </tr>
                   <tr>
                     <td>Fresh Batches</td>
@@ -240,46 +260,26 @@ export default function AboutPage() {
               </table>
 
               <a
-                className="map-directions-card mt-3"
+                className="map-directions-card"
                 href="https://maps.app.goo.gl/B3HB5LV4crU98EDYA"
                 target="_blank"
                 rel="noopener"
                 aria-label="Open Thirst. flagship store location in Google Maps"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: 20,
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-lg)",
-                  background: "var(--color-surface)",
-                  boxShadow: "var(--shadow-sm)",
-                }}
               >
-                <span style={{ fontSize: 40, lineHeight: 1 }} aria-hidden="true">
+                <span className="map-directions-card-icon" aria-hidden="true">
                   📍
                 </span>
-                <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <strong style={{ fontFamily: "var(--font-body)", fontSize: 16 }}>
-                    Thirst. — Flagship Store
-                  </strong>
-                  <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
-                    No. 01, Siva Vishnu Kovil Street, Kakkalur, Thiruvallur – 602 001
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "var(--color-primary)",
-                      marginTop: 4,
-                    }}
-                  >
-                    Get Directions on Google Maps →
-                  </span>
+                <span>
+                  <strong>Get Directions</strong>
+                  <span className="address">{FLAGSHIP.address}</span>
+                  <span className="cta">Open in Google Maps →</span>
                 </span>
               </a>
             </div>
-            <div>
+
+            <div className="visit-form">
+              <h3>Send a Message</h3>
+              <p className="visit-subtitle">We usually reply within a day.</p>
               <form id="contact-form" onSubmit={handleContactSubmit}>
                 <div className="form-group">
                   <label htmlFor="contact-name">Your Name</label>
@@ -315,7 +315,7 @@ export default function AboutPage() {
                   ></textarea>
                   <span className="form-error"></span>
                 </div>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
                   Send Message
                 </button>
               </form>

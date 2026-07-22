@@ -13,7 +13,7 @@ const U = (id: string) => `https://images.unsplash.com/photo-${id}?w=600&q=80`;
 
 // Image handles (all verified reachable)
 const IMG = {
-  hc1: U("1542990253-0d0f5be5f0ed"), hc2: U("1517578239113-b03992dcdd25"), hc3: U("1544787219-7f47ccb76574"),
+  hc1: U("1542990253-0d0f5be5f0ed"), hc2: U("1692776407516-85718ffee6ca"), hc3: U("1702165639524-252a1c1b1ab5"),
   wf1: U("1562376552-0d160a2f238d"), wf2: U("1504387432042-8aca549e4729"), wf3: U("1598214886806-c87b84b7078b"),
   br1: U("1606313564200-e75d5e30476c"), br2: U("1607920591413-4ec007e70023"),
   pc1: U("1567620905732-2d1ec7ab7445"), pc2: U("1528207776546-365bb710ee93"),
@@ -26,7 +26,7 @@ const IMG = {
 };
 
 // Bump this when the menu below changes to push it to existing databases.
-const MENU_VERSION = 4;
+const MENU_VERSION = 5;
 
 type MenuSeed = {
   name: string; category: string; description: string; price: number;

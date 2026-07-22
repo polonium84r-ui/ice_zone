@@ -5,6 +5,7 @@
  * appears on the pages that had it (menu, about).
  */
 import Link from "next/link";
+import Image from "next/image";
 import { Instagram, Youtube } from "lucide-react";
 import { showToast } from "@/lib/client/app";
 
@@ -15,8 +16,13 @@ export function Footer({ newsletter = false }: { newsletter?: boolean }) {
         <div className="footer-grid">
           <div>
             <h4>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/thirst-logo.png" alt="" className="footer-logo-img" />
+              <Image
+                src="/assets/thirst-logo.png"
+                alt=""
+                width={104}
+                height={104}
+                className="footer-logo-img"
+              />
               Thirst.
             </h4>
             <p>

@@ -3,9 +3,13 @@
 /**
  * DishCard — port of App.renderDishCard (display-only showcase card).
  */
+import { useState } from "react";
+import Image from "next/image";
 import type { MenuItem } from "@/lib/client/api";
 import { formatCurrency } from "@/lib/client/app";
 import { Reveal } from "@/components/reveal";
+
+const FALLBACK_IMAGE = "/assets/hero.jpg";
 
 export function DishCard({
   item,
@@ -16,19 +20,17 @@ export function DishCard({
   compact?: boolean;
   onClick?: () => void;
 }) {
+  const [src, setSrc] = useState(item.image || FALLBACK_IMAGE);
   return (
     <Reveal className="dish-card" data-id={item.id} onClick={onClick}>
       <div className="dish-card-image">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.image}
+        <Image
+          src={src}
           alt={item.name}
-          loading="lazy"
-          onError={(e) => {
-            const img = e.currentTarget;
-            img.onerror = null;
-            img.src = "/assets/hero.jpg";
-          }}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+          style={{ objectFit: "cover" }}
+          onError={() => setSrc(FALLBACK_IMAGE)}
         />
       </div>
       <div className="dish-card-body">

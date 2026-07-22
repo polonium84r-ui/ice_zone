@@ -219,6 +219,18 @@ h3 { font-size: var(--text-h3); }
   margin-right: auto;
 }
 
+/* Small uppercase label above a heading — "OUR JOURNEY", "WHAT DRIVES US" etc.
+   Combine with the .text-center utility to centre it. */
+.section-eyebrow {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+
 /* --- Scroll Reveal --- */
 .reveal {
   opacity: 0;
@@ -322,8 +334,10 @@ h3 { font-size: var(--text-h3); }
 }
 
 /* --- Navbar --- */
+/* Non-sticky header: absolutely positioned so it overlays the hero at the top
+   of the page and scrolls away with the content instead of staying pinned. */
 .navbar {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -457,12 +471,6 @@ h3 { font-size: var(--text-h3); }
   color: var(--color-text);
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
 .cart-btn {
   position: relative;
   width: 44px;
@@ -581,81 +589,6 @@ h3 { font-size: var(--text-h3); }
 .user-dropdown a:hover,
 .user-dropdown button:hover {
   background: var(--color-background);
-}
-
-/* Hamburger */
-.hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  width: 28px;
-  cursor: pointer;
-  z-index: calc(var(--z-drawer) + 1);
-}
-
-.hamburger span {
-  display: block;
-  height: 2px;
-  background: var(--color-text);
-  border-radius: 2px;
-  transition: all var(--transition-fast);
-}
-
-.navbar.transparent:not(.scrolled) .hamburger span {
-  background: white;
-}
-
-.hamburger.active span:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
-}
-
-.hamburger.active span:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
-}
-
-/* Mobile Drawer */
-.mobile-drawer {
-  position: fixed;
-  top: 0;
-  right: -100%;
-  width: 280px;
-  height: 100vh;
-  background: var(--color-surface);
-  z-index: var(--z-drawer);
-  padding: calc(var(--navbar-height) + 24px) 24px 24px;
-  box-shadow: var(--shadow-lg);
-  transition: right var(--transition-normal);
-}
-
-.mobile-drawer.open {
-  right: 0;
-}
-
-.mobile-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: calc(var(--z-drawer) - 1);
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition-normal);
-}
-
-.mobile-drawer-overlay.open {
-  opacity: 1;
-  visibility: visible;
-}
-
-.mobile-drawer a {
-  display: block;
-  padding: 14px 0;
-  font-size: var(--text-body);
-  font-weight: 500;
-  border-bottom: 1px solid var(--color-border-light);
 }
 
 /* --- Hero --- */
@@ -1032,7 +965,10 @@ h3 { font-size: var(--text-h3); }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  /* minmax(0, Nfr), not bare Nfr — an 1fr track's implicit min-width is
+     "auto", which lets non-shrinking content (the newsletter form, long
+     unbroken strings) blow the grid past its container on narrow phones. */
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
   gap: 40px;
   margin-bottom: 48px;
 }
@@ -1086,6 +1022,8 @@ h3 { font-size: var(--text-h3); }
 
 .newsletter-form input {
   flex: 1;
+  min-width: 0; /* flex items don't shrink past their intrinsic content size by
+                   default — without this, the input overflows narrow phones. */
   padding: 10px 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-pill);
@@ -1307,6 +1245,7 @@ h3 { font-size: var(--text-h3); }
 }
 
 .dish-detail-image {
+  position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
   height: 300px;
@@ -1421,6 +1360,7 @@ h3 { font-size: var(--text-h3); }
 }
 
 .category-chip {
+  flex: 0 0 auto;
   padding: 10px 24px;
   border-radius: var(--radius-pill);
   font-size: var(--text-small);
@@ -2125,6 +2065,7 @@ h3 { font-size: var(--text-h3); }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 32%;
 }
 
 .about-hero-overlay {
@@ -2154,14 +2095,47 @@ h3 { font-size: var(--text-h3); }
 .story-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 64px;
   align-items: center;
 }
 
+.story-copy p {
+  margin-bottom: 16px;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+}
+
+.story-copy p:last-child {
+  margin-bottom: 0;
+}
+
+/* Row of small pill badges under the story copy — quick, honest claims
+   ("Handmade Daily" etc.) without resorting to invented statistics. */
+.story-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.highlight-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .story-image {
+  position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  height: 400px;
+  height: 420px;
   box-shadow: var(--shadow-md);
   border: 4px solid white;
   transition: all var(--transition-normal);
@@ -2172,10 +2146,40 @@ h3 { font-size: var(--text-h3); }
   box-shadow: var(--shadow-lg);
 }
 
-.story-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Floating badge overlapping the story image's bottom-left corner. */
+.story-image-badge {
+  position: absolute;
+  left: -24px;
+  bottom: -24px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--color-surface);
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+  max-width: 250px;
+}
+
+.story-image-badge-icon {
+  font-size: 30px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.story-image-badge strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.story-image-badge p {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
 .mission-grid {
@@ -2185,7 +2189,7 @@ h3 { font-size: var(--text-h3); }
 }
 
 .mission-card {
-  padding: 36px;
+  padding: 40px;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -2200,118 +2204,46 @@ h3 { font-size: var(--text-h3); }
   border-color: rgba(196, 33, 60, 0.08);
 }
 
-.values-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-  color: white;
-  padding: 48px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.value-item {
-  text-align: center;
-  transition: transform var(--transition-normal);
-}
-
-.value-item:hover {
-  transform: translateY(-4px);
-}
-
-.value-item .icon {
-  font-size: 38px;
-  margin-bottom: 12px;
-  display: inline-block;
-  transition: transform var(--transition-fast);
-}
-
-.value-item:hover .icon {
-  transform: scale(1.18) rotate(6deg);
-}
-
-.value-item h3 {
-  font-size: var(--text-h3);
-  margin-bottom: 8px;
-}
-
-.value-item p {
-  font-size: var(--text-small);
-  opacity: 0.85;
-}
-
-.outlet-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.outlet-card {
-  background: var(--color-surface);
-  padding: 28px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.outlet-card h3 {
-  color: var(--color-primary);
-  margin-bottom: 12px;
-}
-
-.outlet-card p {
-  font-size: var(--text-small);
-  color: var(--color-text-muted);
-  margin-bottom: 6px;
-}
-
-.map-placeholder {
-  width: 100%;
-  height: 300px;
-  background: var(--color-border-light);
-  border-radius: var(--radius-lg);
+.mission-card-icon {
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-small);
-  border: 2px dashed var(--color-border);
+  font-size: 26px;
+  background: var(--color-background);
+  border-radius: 50%;
+  margin-bottom: 20px;
 }
 
-.map-embed {
-  width: 100%;
-  height: 300px;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.map-embed iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: block;
-}
-
-.map-directions-link {
-  display: inline-flex;
+/* Franchise enquiry banner — a standalone gradient CTA between the mission
+   section and the visit/contact panel. */
+.franchise-cta {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: var(--text-small);
-  font-weight: 600;
-  color: var(--color-primary);
+  justify-content: space-between;
+  gap: 32px;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-light) 100%);
+  background-size: 200% 200%;
+  animation: gradientBg 10s ease infinite;
+  color: white;
+  padding: 48px 56px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-.map-directions-link:hover {
-  text-decoration: underline;
+.franchise-cta h2 {
+  font-size: var(--text-h2);
+  margin-bottom: 8px;
 }
 
-@media (max-width: 480px) {
-  .map-embed {
-    height: 220px;
-  }
+.franchise-cta p {
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 480px;
+}
+
+.franchise-cta .btn {
+  flex-shrink: 0;
 }
 
 .hours-table {
@@ -2330,10 +2262,104 @@ h3 { font-size: var(--text-h3); }
   font-weight: 500;
 }
 
-.contact-grid {
+/* Visit & Connect — a single card housing store info (left) and the contact
+   form (right), replacing the old three-column outlet grid (which looked
+   sparse with a single location) and the separate, address-duplicating
+   contact section. */
+.visit-panel {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+
+.visit-info {
+  padding: 48px;
+  border-right: 1px solid var(--color-border-light);
+}
+
+.visit-form {
+  padding: 48px;
+}
+
+.visit-info h3,
+.visit-form h3 {
+  margin-bottom: 8px;
+}
+
+.visit-info > p.visit-subtitle,
+.visit-form > p.visit-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  margin-bottom: 24px;
+}
+
+.visit-info-list {
+  margin-bottom: 24px;
+}
+
+.visit-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.visit-info-row .icon {
+  font-size: 18px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.visit-info-row a:hover {
+  color: var(--color-primary);
+}
+
+.map-directions-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+  transition: all var(--transition-fast);
+}
+
+.map-directions-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.map-directions-card-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.map-directions-card strong {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.map-directions-card .address {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.map-directions-card .cta {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-top: 6px;
 }
 
 /* --- Admin Dashboard --- */
@@ -2741,7 +2767,7 @@ h3 { font-size: var(--text-h3); }
   }
 
   .footer-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cart-layout {
@@ -2764,8 +2790,19 @@ h3 { font-size: var(--text-h3); }
     grid-template-columns: 1fr;
   }
 
-  .contact-grid {
-    grid-template-columns: 1fr;
+  .story-image-badge {
+    position: static;
+    max-width: none;
+    margin-top: 16px;
+  }
+
+  .visit-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .visit-info {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 
@@ -2781,12 +2818,9 @@ h3 { font-size: var(--text-h3); }
     padding: 56px 0;
   }
 
+  /* Inline nav links stay visible on mobile (no hamburger); tighten spacing. */
   .nav-links {
-    display: none;
-  }
-
-  .hamburger {
-    display: flex;
+    gap: 18px;
   }
 
   .card-grid,
@@ -2808,8 +2842,16 @@ h3 { font-size: var(--text-h3); }
   }
 
   .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px 24px;
+  }
+
+  /* Brand block (first) and contact block (last) span the full width; the two
+     short link columns (Quick Links / Opening Hours) sit side by side so the
+     mobile footer reads as a tidy block instead of one tall stack. */
+  .footer-grid > div:first-child,
+  .footer-grid > div:last-child {
+    grid-column: 1 / -1;
   }
 
   .auth-page {
@@ -2827,10 +2869,19 @@ h3 { font-size: var(--text-h3); }
     margin-right: auto;
   }
 
-  .mission-grid,
-  .values-strip,
-  .outlet-grid {
+  .mission-grid {
     grid-template-columns: 1fr;
+  }
+
+  .franchise-cta {
+    flex-direction: column;
+    text-align: center;
+    padding: 40px 28px;
+  }
+
+  .visit-info,
+  .visit-form {
+    padding: 32px 24px;
   }
 
   .admin-sidebar {
@@ -2934,7 +2985,7 @@ h3 { font-size: var(--text-h3); }
   }
 
   .footer-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 32px;
   }
 
@@ -2964,12 +3015,9 @@ h3 { font-size: var(--text-h3); }
     padding: 0 16px;
   }
 
+  /* Inline nav links stay visible on mobile (no hamburger); tighten spacing. */
   .nav-links {
-    display: none;
-  }
-
-  .hamburger {
-    display: flex;
+    gap: 18px;
   }
 
   .hero-content h1 {
@@ -3011,8 +3059,13 @@ h3 { font-size: var(--text-h3); }
   }
 
   .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px 24px;
+  }
+
+  .footer-grid > div:first-child,
+  .footer-grid > div:last-child {
+    grid-column: 1 / -1;
   }
 
   .dish-detail {
@@ -3163,10 +3216,7 @@ h3 { font-size: var(--text-h3); }
 @media print {
   .navbar,
   .footer,
-  .hamburger,
   .cart-btn,
-  .mobile-drawer,
-  .mobile-drawer-overlay,
   .btn,
   button {
     display: none !important;
@@ -3214,8 +3264,7 @@ h3 { font-size: var(--text-h3); }
   .btn,
   .cart-btn,
   .category-chip,
-  .delivery-option,
-  .hamburger {
+  .delivery-option {
     min-height: 44px;
     min-width: 44px;
   }

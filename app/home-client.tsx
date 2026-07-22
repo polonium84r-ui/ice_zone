@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -52,11 +53,14 @@ export default function HomePage() {
       {/* Hero */}
       <header className="hero" id="main-content">
         <div className="hero-bg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/assets/hero.jpg"
             alt="Handcrafted hot chocolate being poured"
-            fetchPriority="high"
+            fill
+            priority
+            sizes="100vw"
+            quality={82}
+            style={{ objectFit: "cover", objectPosition: "center 70%" }}
           />
         </div>
         <div className="hero-overlay"></div>
@@ -146,35 +150,10 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <Reveal className="text-center mt-3">
-            <Link href="/menu" className="btn btn-primary btn-lg">
-              Explore Full Menu
-            </Link>
-          </Reveal>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section
-        className="section"
-        style={{ textAlign: "center", background: "var(--color-surface)" }}
-      >
-        <Reveal className="container">
-          <h2 className="section-title">Craving Something Sweet?</h2>
-          <p className="section-subtitle">
-            Explore our full menu of hot chocolate, waffles, shakes, brownies &amp; more —
-            freshly made every day.
-          </p>
-          <Link href="/menu" className="btn btn-primary btn-lg">
-            View the Menu
-          </Link>
-        </Reveal>
-      </section>
-
       <Footer />
-
-      {/* Hide the navbar "View Menu" button on mobile — drawer + hero CTA cover it. */}
-      <style>{`@media (max-width: 768px) { .order-nav-btn { display: none; } }`}</style>
     </>
   );
 }

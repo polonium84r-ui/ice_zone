@@ -4,6 +4,7 @@
  * Menu — category filters and the read-only dish detail modal with reviews.
  */
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { DishCard } from "@/components/dish-card";
@@ -95,8 +96,13 @@ export default function MenuPage() {
           <>
             <div className="dish-detail">
               <div className="dish-detail-image">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={detail.image} alt={detail.name} />
+                <Image
+                  src={detail.image}
+                  alt={detail.name}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 480px"
+                  style={{ objectFit: "cover" }}
+                />
               </div>
               <div>
                 <div

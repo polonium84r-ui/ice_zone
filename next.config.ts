@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const securityHeaders = [
   // Prevent MIME-type sniffing
@@ -37,7 +38,16 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Pin the workspace root to this project so file tracing (and deploys) don't
+  // get confused by a stray lockfile in a parent directory.
+  outputFileTracingRoot: path.join(__dirname),
   images: {
+    // Serve modern, smaller formats automatically (AVIF first, WebP fallback).
+    formats: ["image/avif", "image/webp"],
+    // Explicit allow-list required by Next.js 16 for any non-default `quality` prop.
+    qualities: [75, 82],
+    // Cache optimized images for 31 days at the CDN/edge.
+    minimumCacheTTL: 60 * 60 * 24 * 31,
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
   },
   async headers() {
