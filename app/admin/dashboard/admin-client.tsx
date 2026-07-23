@@ -16,12 +16,71 @@ import * as API from "@/lib/client/api";
 import type {
   AdminStats,
   AuditEntry,
+  Bill,
   Coupon,
   MenuItem,
   SessionUser,
 } from "@/lib/client/api";
 
 type Section = "dashboard" | "menu" | "users" | "audit" | "coupons";
+
+/** Escape a value for a CSV cell (RFC 4180): wrap in quotes, double inner quotes. */
+function csvCell(value: unknown): string {
+  const s = value == null ? "" : String(value);
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+/** Build a sales-report CSV from bills (newest first) and trigger a download. */
+function downloadSalesReportCsv(bills: Bill[]) {
+  const headers = [
+    "Bill Number",
+    "Date",
+    "Staff",
+    "Customer",
+    "Phone",
+    "Items",
+    "Subtotal",
+    "Discount",
+    "Tax",
+    "Total",
+    "Payment Method",
+  ];
+  const rows = bills.map((b) =>
+    [
+      b.billNumber,
+      new Date(b.createdAt).toLocaleString("en-IN"),
+      b.staffName || "",
+      b.customerName || "",
+      b.customerPhone || "",
+      (b.items || []).map((it) => `${it.name} x${it.quantity}`).join("; "),
+      b.subtotal.toFixed(2),
+      b.discount.toFixed(2),
+      b.tax.toFixed(2),
+      b.total.toFixed(2),
+      b.paymentMethod || "",
+    ]
+      .map(csvCell)
+      .join(",")
+  );
+
+  // Totals summary row at the bottom.
+  const grandTotal = bills.reduce((s, b) => s + b.total, 0);
+  const summary = ["", "", "", "", "", `TOTAL (${bills.length} bills)`, "", "", "", grandTotal.toFixed(2), ""]
+    .map(csvCell)
+    .join(",");
+
+  // BOM so Excel reads UTF-8 (₹, names) correctly.
+  const csv = "﻿" + [headers.map(csvCell).join(","), ...rows, summary].join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `sales-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 const NAV: { section: Section; label: string }[] = [
   { section: "dashboard", label: "📊 Dashboard" },
@@ -48,6 +107,7 @@ export default function AdminPage() {
   const [auditError, setAuditError] = useState("");
   const [auditFilter, setAuditFilter] = useState("");
 
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const [addItemOpen, setAddItemOpen] = useState(false);
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [editUser, setEditUser] = useState<SessionUser | null>(null);
@@ -110,6 +170,23 @@ export default function AdminPage() {
   async function handleLogout() {
     await API.logout();
     router.push("/admin");
+  }
+
+  async function handleDownloadReport() {
+    setDownloadingReport(true);
+    try {
+      const bills = await API.getBills(); // admin receives all bills
+      if (bills.length === 0) {
+        showToast("No bills to report yet", "info");
+        return;
+      }
+      downloadSalesReportCsv(bills);
+      showToast(`Sales report downloaded (${bills.length} bills)`, "success");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setDownloadingReport(false);
+    }
   }
 
   async function saveMenuItem(id: number) {
@@ -317,9 +394,18 @@ export default function AdminPage() {
           <section className={`admin-section ${section === "dashboard" ? "active" : ""}`}>
             <div className="admin-header">
               <h1>Dashboard</h1>
-              <span style={{ color: "var(--color-text-muted)" }}>
-                {me ? `Welcome, ${me.name}` : ""}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  {me ? `Welcome, ${me.name}` : ""}
+                </span>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleDownloadReport}
+                  disabled={downloadingReport}
+                >
+                  {downloadingReport ? "Preparing…" : "⬇️ Download Sales Report"}
+                </button>
+              </div>
             </div>
             <div className="stat-cards">
               <div className="stat-card">
